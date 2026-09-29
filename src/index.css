@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/*
+  The look of the real product (records 36 to 38), written as Tailwind tokens:
+  slate greys, red only as the brand accent, a calm dark action colour, capsule
+  buttons, corners 24 / 16 / 12 / 4, and one soft "float" shadow.
+*/
+@theme {
+  --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-canvas: #f1f5f9;
+  --color-control: #7e8ea4; /* border of a field: 3:1 against white */
+  --color-brand: #dc2626;
+  --color-action: #0f172a;
+  --color-action-hover: #1e293b;
+
+  --shadow-float: 0 0 0 1px rgb(15 23 42 / 5%), 0 1px 2px rgb(15 23 42 / 6%),
+    0 10px 30px -10px rgb(15 23 42 / 14%);
+  --shadow-pop: 0 0 0 1px rgb(15 23 42 / 6%), 0 4px 6px -2px rgb(15 23 42 / 6%),
+    0 20px 40px -12px rgb(15 23 42 / 24%);
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --animate-pop-in: pop-in 0.16s var(--ease-standard);
+  --animate-fade-in: fade-in 0.16s var(--ease-standard);
+  --animate-slide-in: slide-in 0.22s var(--ease-standard);
+  --animate-sheet-up: sheet-up 0.24s var(--ease-standard);
+
+  @keyframes pop-in {
+    from { opacity: 0; transform: translateY(-4px) scale(0.985); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-in {
+    from { transform: translateX(24px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+  @keyframes sheet-up {
+    from { transform: translateY(24px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-bottom: 6rem;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 24px;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 16 px on phones (no zoom on inputs), 14 px from the md breakpoint up. */
+  @media (min-width: 768px) {
+    body {
+      font-size: 14px;
+      line-height: 20px;
+    }
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  ::selection {
+    background: #bfdbfe;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Lucide icons: one stroke width everywhere (the real theme does the same). */
+.lucide {
+  stroke-width: 1.75;
+}
+
+/* Print: only the content panel (invoices, reports and certificates later). */
+@media print {
+  html,
+  body {
+    background: #fff;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
