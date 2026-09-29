@@ -1,0 +1,18 @@
+import { AREAS } from '@/data/areas.js';
+import { ROLES } from '@/data/roles.js';
+import { useStore } from './store.js';
+
+/** Who is "signed in" in the demo, and what that person may see and do. */
+export function useSession() {
+  const state = useStore();
+  const user = state.staff[state.session.userId];
+  const role = ROLES[user.roleKey];
+  return {
+    user,
+    role,
+    roleKey: user.roleKey,
+    access: (areaId) => role.access[areaId] ?? null,
+    canEdit: (areaId) => role.access[areaId] === 'edit',
+    areas: AREAS.filter((a) => role.access[a.id]),
+  };
+}
