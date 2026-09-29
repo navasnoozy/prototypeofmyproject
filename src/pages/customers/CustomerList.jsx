@@ -4,7 +4,7 @@ import { SEGMENTS } from '@/data/catalog.js';
 import { plural } from '@/lib/format.js';
 import { useParam } from '@/lib/useParam.js';
 import { aed } from '@/lib/format.js';
-import { customerContacts, customerSites, list } from '@/store/selectors.js';
+import { customerContacts, customerSites, list, paidSites } from '@/store/selectors.js';
 import { useSession } from '@/store/session.js';
 import { useStore } from '@/store/store.js';
 import { Avatar, Status } from '@/ui/Badge.jsx';
@@ -69,7 +69,18 @@ export function CustomerList() {
           ) : <span className="text-slate-400">—</span>;
         },
       },
-      { key: 'sites', header: 'Sites', align: 'right', sortValue: (c) => customerSites(s, c.id).length, cell: (c) => customerSites(s, c.id).length },
+      {
+        key: 'sites', header: 'Sites', align: 'right', sortValue: (c) => customerSites(s, c.id).length,
+        cell: (c) => {
+          const paying = paidSites(s, c.id).length;
+          return (
+            <div>
+              <p className="text-slate-900">{customerSites(s, c.id).length}</p>
+              {paying > 0 && <p className="whitespace-nowrap text-xs text-slate-500">pays for {paying}</p>}
+            </div>
+          );
+        },
+      },
       {
         key: 'terms', header: 'Terms', hideBelow: 'md', sortValue: (c) => c.creditLimit,
         cell: (c) => (
@@ -121,7 +132,7 @@ export function CustomerList() {
             <Avatar name={c.name} shape={c.type === 'individual' ? 'circle' : 'square'} />
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium text-slate-900">{c.name}</p>
-              <p className="truncate text-xs text-slate-500">{c.segment} · {plural(customerSites(s, c.id).length, 'site')}</p>
+              <p className="truncate text-xs text-slate-500">{c.segment} · {plural(customerSites(s, c.id).length + paidSites(s, c.id).length, 'site')}</p>
             </div>
             <Status kind="customer" value={c.status} dot={false} />
           </div>

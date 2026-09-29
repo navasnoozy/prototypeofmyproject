@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckIcon } from 'lucide-react';
 import { cn } from '@/lib/cn.js';
@@ -11,7 +11,20 @@ export function Floating({
   anchorRef, open, onClose, side = 'bottom', align = 'start', matchWidth = false, className, children, role,
 }) {
   const ref = useRef(null);
+  const id = useId();
   const [pos, setPos] = useState(null);
+
+  // Only one floating layer is open at a time: opening this one closes the
+  // others (a menu, the bell, the search results).
+  useEffect(() => {
+    if (!open) return undefined;
+    window.dispatchEvent(new CustomEvent('floating-open', { detail: id }));
+    const onOther = (e) => {
+      if (e.detail !== id) onClose();
+    };
+    window.addEventListener('floating-open', onOther);
+    return () => window.removeEventListener('floating-open', onOther);
+  }, [open, id, onClose]);
 
   const place = useCallback(() => {
     const anchor = anchorRef.current?.getBoundingClientRect();

@@ -7,7 +7,6 @@ import { useParam } from '@/lib/useParam.js';
 import { list, siteHealth, siteSummary } from '@/store/selectors.js';
 import { useSession } from '@/store/session.js';
 import { useStore } from '@/store/store.js';
-import { Badge } from '@/ui/Badge.jsx';
 import { Button } from '@/ui/Button.jsx';
 import { Segmented } from '@/ui/Form.jsx';
 import { EmptyState, FilterSelect, Page, SearchField, Toolbar } from '@/ui/Page.jsx';

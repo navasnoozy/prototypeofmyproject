@@ -6,7 +6,7 @@ import { NUMBER_FORMATS } from '../numbering.js';
 
 // Bump this whenever the shape of the seed changes: a browser that saved an
 // older shape then starts again from the new seed instead of breaking.
-export const SEED_VERSION = 1;
+export const SEED_VERSION = 2;
 
 const byId = (list) => Object.fromEntries(list.map((x) => [x.id, x]));
 

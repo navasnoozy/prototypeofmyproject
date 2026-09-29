@@ -193,7 +193,7 @@ export const EmptyState = ({ icon: Icon, title, children, action }) => (
 export const Toolbar = ({ children }) => <div className="mb-4 flex flex-wrap items-center gap-3">{children}</div>;
 
 export const SearchField = ({ value, onChange, placeholder = 'Search', className }) => (
-  <div className={cn('relative w-full sm:w-72', className)}>
+  <div className={cn('relative w-full sm:w-80', className)}>
     <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
     <input
       type="search"

@@ -54,7 +54,7 @@ export const customerName = (s, id) => s.customers[id]?.name ?? '—';
 export const staffName = (s, id) => s.staff[id]?.name ?? '—';
 
 // The people of a customer or of a site, one row each.
-export function ContactRows({ contacts, editable, onEdit, onAdd, showCustomer }) {
+export function ContactRows({ contacts, editable, onEdit, onAdd, showCustomer, mainFirst = true }) {
   if (contacts.length === 0) {
     return (
       <EmptyState icon={UserPlusIcon} title="No contact yet" action={editable && <Button variant="primary" icon={PlusIcon} onClick={onAdd}>Add contact</Button>}>
@@ -64,7 +64,7 @@ export function ContactRows({ contacts, editable, onEdit, onAdd, showCustomer })
   }
   return (
     <ul className="divide-y divide-slate-100">
-      {contacts.toSorted((a, b) => Number(b.primary) - Number(a.primary)).map((p) => (
+      {(mainFirst ? contacts.toSorted((a, b) => Number(b.primary) - Number(a.primary)) : contacts).map((p) => (
         <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3">
           <Avatar name={p.name} size="md" />
           <div className="min-w-0 flex-1 basis-48">

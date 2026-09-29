@@ -91,7 +91,7 @@ function Body({ customer }) {
     <Page
       title={customer.name}
       badge={<Status kind="customer" value={customer.status} />}
-      facts={`${customer.code} · ${customer.segment} · ${customer.terms} · ${plural(sites.length, 'site')}`}
+      facts={`${customer.code} · ${customer.segment} · ${customer.terms} · ${sites.length > 0 || paying.length === 0 ? plural(sites.length, 'site') : ''}${sites.length > 0 && paying.length > 0 ? ', ' : ''}${paying.length > 0 ? `pays for ${plural(paying.length, 'site')}` : ''}`}
       back="/customers"
       about={ABOUT}
       menu={menu}
@@ -112,7 +112,7 @@ function Body({ customer }) {
         <div className="mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
           <PauseIcon className="size-4 shrink-0" aria-hidden="true" />
           <p className="min-w-0 flex-1">
-            <strong className="font-semibold">On hold.</strong> {customer.holdReason} New work needs the owner's approval.
+            <strong className="font-semibold">On hold.</strong> {customer.holdReason.replace(/[.\s]*$/, '.')} New work needs the owner's approval.
           </p>
           {editable && canRelease && (
             <Button size="sm" onClick={() => { setCustomerStatus(customer.id, 'active'); toast('Customer taken off hold'); }}>Take off hold</Button>
@@ -142,27 +142,22 @@ function Body({ customer }) {
               />
             </Card>
             <Card
-              title={`Sites (${sites.length})`}
+              title={`Sites (${sites.length + paying.length})`}
               action={editable && <Button variant="ghost" size="xs" icon={PlusIcon} to={`/customers/sites/new?customer=${customer.id}`}>Add site</Button>}
               bodyClassName="!px-2"
             >
-              {sites.length === 0 ? (
+              {sites.length === 0 && paying.length === 0 && (
                 <p className="px-3 pb-2 text-sm text-slate-500">No site yet. Add the first one to start quoting and servicing.</p>
-              ) : (
-                <ul>
-                  {sites.map((site) => (
-                    <li key={site.id}>
-                      <Link to={`/customers/sites/${site.id}`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-slate-50">
-                        <SiteTile />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-medium text-slate-900">{site.name}</span>
-                          <span className="block truncate text-xs text-slate-500">{site.type} · {site.area}</span>
-                        </span>
-                        <HealthBadge summary={siteSummary(s, site.id)} />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+              )}
+              {sites.length === 0 && paying.length > 0 && (
+                <p className="px-3 pb-2 text-sm text-slate-500">This customer owns no site of its own. It pays for the sites below.</p>
+              )}
+              <SiteLinks s={s} sites={sites} />
+              {paying.length > 0 && (
+                <>
+                  <p className="px-3 pb-1 pt-3 text-xs font-medium text-slate-500">Pays for (owned by others)</p>
+                  <SiteLinks s={s} sites={paying} showOwner />
+                </>
               )}
             </Card>
           </div>
@@ -287,6 +282,27 @@ function Body({ customer }) {
         {customer.name} and its contacts will be removed. This cannot be undone.
       </ConfirmDialog>
     </Page>
+  );
+}
+
+function SiteLinks({ s, sites, showOwner }) {
+  return (
+    <ul>
+      {sites.map((site) => (
+        <li key={site.id}>
+          <Link to={`/customers/sites/${site.id}`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-slate-50">
+            <SiteTile />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium text-slate-900">{site.name}</span>
+              <span className="block truncate text-xs text-slate-500">
+                {showOwner ? `Owner: ${s.customers[site.customerId]?.name}` : `${site.type} · ${site.area}`}
+              </span>
+            </span>
+            <HealthBadge summary={siteSummary(s, site.id)} />
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 

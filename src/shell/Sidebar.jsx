@@ -22,10 +22,10 @@ const Badge = ({ count }) =>
     </span>
   ) : null;
 
-function ItemBody({ icon: Icon, label, active, count }) {
+function ItemBody({ icon: Icon, label, active, count, bar = true }) {
   return (
     <>
-      {active && <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brand" aria-hidden="true" />}
+      {active && bar && <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brand" aria-hidden="true" />}
       <span className="relative">
         <Icon className="size-5" aria-hidden="true" />
         <Badge count={count} />
@@ -37,7 +37,7 @@ function ItemBody({ icon: Icon, label, active, count }) {
 
 const itemColour = (active) => (active ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900');
 
-export function NavItem({ area, count, onNavigate, className }) {
+export function NavItem({ area, count, onNavigate, className, bar }) {
   return (
     <NavLink
       to={area.path}
@@ -45,7 +45,7 @@ export function NavItem({ area, count, onNavigate, className }) {
       onClick={onNavigate}
       className={({ isActive }) => cn(itemBase, itemColour(isActive), className)}
     >
-      {({ isActive }) => <ItemBody icon={area.icon} label={area.label} active={isActive} count={count} />}
+      {({ isActive }) => <ItemBody icon={area.icon} label={area.label} active={isActive} count={count} bar={bar} />}
     </NavLink>
   );
 }
@@ -81,32 +81,34 @@ export function Sidebar({ areas }) {
   const hiddenCount = hidden.reduce((n, a) => n + (byArea[a.id] ?? 0), 0);
 
   return (
-    <div ref={boxRef} className="min-h-0 flex-1 overflow-hidden rounded-full bg-white px-2 py-3 shadow-float">
-      <ul className="flex flex-col gap-0.5">
-        {shown.map((a) => (
-          <li key={a.id}><NavItem area={a} count={byArea[a.id]} /></li>
-        ))}
-        {hidden.length > 0 && (
-          <li>
-            <span ref={moreRef} className="block">
-              <button
-                type="button"
-                aria-haspopup="menu"
-                aria-expanded={moreOpen}
-                onClick={() => setMoreOpen((o) => !o)}
-                className={cn(itemBase, itemColour(hiddenActive || moreOpen))}
-              >
-                <ItemBody icon={EllipsisIcon} label="More" active={hiddenActive} count={hiddenCount} />
-              </button>
-            </span>
-            <Floating anchorRef={moreRef} open={moreOpen} onClose={closeMore} side="right" className="w-56 p-1.5" role="menu">
-              {hidden.map((a) => (
-                <MoreRow key={a.id} area={a} count={byArea[a.id]} onNavigate={closeMore} />
-              ))}
-            </Floating>
-          </li>
-        )}
-      </ul>
+    <div ref={boxRef} className="min-h-0 flex-1">
+      <div className="max-h-full overflow-hidden rounded-full bg-white px-2 py-3 shadow-float">
+        <ul className="flex flex-col gap-0.5">
+          {shown.map((a) => (
+            <li key={a.id}><NavItem area={a} count={byArea[a.id]} /></li>
+          ))}
+          {hidden.length > 0 && (
+            <li>
+              <span ref={moreRef} className="block">
+                <button
+                  type="button"
+                  aria-haspopup="menu"
+                  aria-expanded={moreOpen}
+                  onClick={() => setMoreOpen((o) => !o)}
+                  className={cn(itemBase, itemColour(hiddenActive || moreOpen))}
+                >
+                  <ItemBody icon={EllipsisIcon} label="More" active={hiddenActive} count={hiddenCount} />
+                </button>
+              </span>
+              <Floating anchorRef={moreRef} open={moreOpen} onClose={closeMore} side="right" className="w-56 p-1.5" role="menu">
+                {hidden.map((a) => (
+                  <MoreRow key={a.id} area={a} count={byArea[a.id]} onNavigate={closeMore} />
+                ))}
+              </Floating>
+            </li>
+          )}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -174,7 +176,7 @@ export function PhoneBar({ areas }) {
         className="no-print fixed inset-x-2 bottom-2 z-30 flex h-16 items-center justify-around rounded-full bg-white px-2 shadow-float md:hidden"
       >
         {bar.map((a) => (
-          <NavItem key={a.id} area={a} count={byArea[a.id]} className="w-16" />
+          <NavItem key={a.id} area={a} count={byArea[a.id]} className="w-16" bar={false} />
         ))}
         <button type="button" onClick={() => setOpen(true)} className={cn(itemBase, itemColour(open), 'w-16')}>
           <ItemBody icon={EllipsisIcon} label="More" active={false} count={restCount} />
@@ -183,7 +185,7 @@ export function PhoneBar({ areas }) {
       <Drawer open={open} onClose={() => setOpen(false)} title="More">
         <div className="grid grid-cols-3 gap-2">
           {rest.map((a) => (
-            <NavItem key={a.id} area={a} count={byArea[a.id]} onNavigate={() => setOpen(false)} className="py-3" />
+            <NavItem key={a.id} area={a} count={byArea[a.id]} onNavigate={() => setOpen(false)} className="py-3" bar={false} />
           ))}
         </div>
         <div className="mt-6 border-t border-slate-200 pt-4">

@@ -145,7 +145,7 @@ export function buildEquipment(T) {
     ['diesel', 1, 'Basement 1 pump room'],
     ['jockey', 1, 'Basement 1 pump room'],
   ]);
-  add(g, 'kitchen_hood', 'Kitchen hood suppression, main kitchen', 'Main kitchen, level 1', 2018, 190, [
+  add(g, 'kitchen_hood', 'Kitchen hood suppression, main kitchen', 'Main kitchen, level 1', 2018, 150, [
     ['cylinder', 4, 'Main kitchen hoods', { make: 'Ansul', model: 'Wet chemical, 6 gal' }],
     ['links', 4, 'Main kitchen hoods'],
     ['gasvalve', 1, 'Main kitchen'],
@@ -326,7 +326,7 @@ export function buildEquipment(T) {
   // ---- Oasis Cold Storage ----------------------------------------------------
   const o = 'site_oasis';
   add(o, 'sprinkler', 'Sprinkler system (dry-pipe in cold rooms)', 'Valve room', 2017, 150, [
-    ['valve', 4, 'Valve room'],
+    ['valve', 4, 'Valve room', { last: 60 }],
     ['heads', 1800, 'Warehouse and cold rooms', { last: 290 }],
     ['flow', 4, 'Valve room', { last: 150 }],
   ]);
@@ -487,7 +487,7 @@ export function buildEquipment(T) {
   ]);
   const sj = 'site_sharjah';
   add(sj, 'sprinkler', 'Sprinkler system', 'Valve room', 2015, 110, [
-    ['valve', 3, 'Valve room'],
+    ['valve', 3, 'Valve room', { last: 70 }],
     ['heads', 1600, 'Production hall, warehouse', { last: 290 }],
   ]);
   add(sj, 'fire_alarm', 'Fire alarm system', 'Reception', 2015, 200, [

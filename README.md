@@ -1,54 +1,61 @@
-# Vite 6 + React 19 + Tailwind CSS v4 + TypeScript
+# Fire & Safety ERP: clickable prototype
 
-A production-ready starter project showcasing modern front-end architecture, strict type safety, and the latest web standards.
+A prototype of the whole product, made only to **look at it and try it**: every
+screen is clickable, the data is invented, and nothing is sent anywhere. It has
+no server. Changes you make are saved in your browser only.
 
----
+It is not the product. The product is built later, in the main repository,
+after the owner has judged the flows here.
 
-## ⚡ Tech Stack
-
-| Technology | Version | Purpose |
-| :--- | :--- | :--- |
-| **Vite** | `^6.2.0` | Next-generation frontend tooling with fast HMR and warmup |
-| **React** | `^19.0.0` | UI library with native Actions, `useActionState`, and `useOptimistic` |
-| **Tailwind CSS** | `^4.0.0` | CSS-first styling engine powered by `@tailwindcss/vite` |
-| **TypeScript** | `^5.7.3` | Strict type-checking with bundler module resolution |
-| **Lucide React** | `^1.16.0` | Modern, lightweight icon collection |
-
----
-
-## 🛠️ Key Architectural Decisions
-
-1. **Tailwind CSS v4 CSS-First Integration**
-   - Configured via `@tailwindcss/vite` in `vite.config.ts`.
-   - Replaces legacy `tailwind.config.js` and `postcss.config.js` with direct CSS `@import "tailwindcss";` in `src/index.css`.
-
-2. **React 19 Native Actions & Optimistic UI**
-   - Demonstrated in `src/App.tsx` using `useActionState` and `useOptimistic`.
-   - Root error monitoring callbacks configured in `src/main.tsx` (`onCaughtError`, `onUncaughtError`, `onRecoverableError`).
-
-3. **Stale Deployment Chunk Recovery**
-   - Native `window.addEventListener('vite:preloadError')` listener in `src/main.tsx` automatically recovers from deleted CDN hashed chunks on route navigation.
-
-4. **Coarse Vendor Code-Splitting**
-   - `vite.config.ts` partitions `react-vendor` and core application assets to maximize browser caching efficiency.
-
-5. **Path Aliases**
-   - `@/*` is mapped directly to `src/*` across both `vite.config.ts` and `tsconfig.app.json`.
-
----
-
-## 🚀 Getting Started
+## Run it
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Start local development server (http://localhost:3000)
-pnpm dev
-
-# Type-check and build for production
-pnpm run build
-
-# Preview production build locally
-pnpm run preview
+pnpm install     # once
+pnpm dev         # opens http://localhost:3000
 ```
+
+Use **View as** (top bar) to see the product as another person of the demo
+company. Use **Reset demo data** (account menu) to start again from the first
+sample.
+
+## What is in it
+
+The demo company is an invented Dubai fire and safety contractor. All names,
+phone numbers, TRNs and amounts are samples.
+
+| Step | Area                            | State       |
+| ---- | ------------------------------- | ----------- |
+| 1    | Shell, Customers (with Sites, Contacts, Equipment), Home, Settings | built |
+| 2    | Sales                           | next        |
+| 3    | Service                         | to come     |
+| 4    | Technician phone view           | to come     |
+| 5    | Schedule and Projects           | to come     |
+| 6    | Purchases and Inventory         | to come     |
+| 7    | Billing                         | to come     |
+| 8    | Home by role, Reports, Journeys | to come     |
+
+The ten areas and their order are the proposal of decision record 39 of the
+main repository (status: Proposed). The prototype helps to test it.
+
+## How it is made
+
+Plain JavaScript (no TypeScript), React 19, Vite, Tailwind CSS 4,
+`react-router`, `lucide-react` icons, Inter font. Nothing else.
+
+```
+src/
+  data/       areas, roles, equipment catalogue, numbering, and seed/ (the sample data)
+  store/      one saved object of tables, actions that change it, selectors that read it
+  ui/         the shared pieces: Button, Badge, Floating/Menu, Form, Combobox, Table, Page...
+  shell/      the frame: top bar, search, sidebar, phone bar, View as, bell, account
+  pages/      one folder per area
+```
+
+Rules the code follows:
+
+- Data changes only through `store/actions.js`; every action is one transaction
+  and writes a line into the activity list.
+- Sample dates are relative to today, so "due in 12 days" stays true whenever
+  the prototype is opened.
+- A screen says "sample" wherever a fact was assumed (the "i" button on every
+  screen lists what is assumed).

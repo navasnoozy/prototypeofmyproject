@@ -8,17 +8,18 @@ export const list = (table) => Object.values(table);
 
 // A table is replaced (never edited) on every change, so a WeakMap keyed by
 // the table gives a free cache that is dropped exactly when the data changes.
-const cache = new WeakMap();
-const memo = (table, build) => {
-  if (!cache.has(table)) cache.set(table, build(table));
+// There is one cache per grouping key: the same table is grouped by site and
+// by system.
+const caches = {};
+const groupBy = (table, key) => {
+  const cache = (caches[key] ??= new WeakMap());
+  if (!cache.has(table)) {
+    const groups = {};
+    for (const row of Object.values(table)) (groups[row[key]] ??= []).push(row);
+    cache.set(table, groups);
+  }
   return cache.get(table);
 };
-const groupBy = (table, key) =>
-  memo(table, (rows) => {
-    const groups = {};
-    for (const row of Object.values(rows)) (groups[row[key]] ??= []).push(row);
-    return groups;
-  });
 
 export const devicesBySite = (s) => groupBy(s.devices, 'siteId');
 export const devicesBySystem = (s) => groupBy(s.devices, 'systemId');

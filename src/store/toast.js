@@ -12,7 +12,7 @@ export function dismiss(id) {
   emit();
 }
 
-export function toast(message, { tone = 'default', action, duration = 4500 } = {}) {
+export function toast(message, { tone = 'default', action, duration = action ? 8000 : 4500 } = {}) {
   const id = Math.random().toString(36).slice(2);
   items = [...items.slice(-3), { id, message, tone, action }];
   emit();
