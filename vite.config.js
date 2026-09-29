@@ -11,6 +11,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: { alias: { '@': path.resolve(__dirname, './src') } },
-  server: { port: 3000, strictPort: true },
-  preview: { port: 4173, strictPort: true },
+  server: { port: 3000, strictPort: false },
+  preview: { port: 4173, strictPort: false },
 });
