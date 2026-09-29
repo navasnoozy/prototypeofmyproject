@@ -16,7 +16,6 @@ export function SalesTabs() {
       items={[
         { to: '/sales', label: 'Enquiries', count: open },
         { to: '/sales/quotations', label: 'Quotations', count: latestQuotations(s).length },
-        { to: '/sales/catalogue', label: 'Catalogue', count: list(s.items).filter((i) => i.active).length },
       ]}
     />
   );

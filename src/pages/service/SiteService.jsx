@@ -3,6 +3,8 @@ import { PlusIcon } from 'lucide-react';
 import { JOB_KINDS } from '@/data/serviceKinds.js';
 import { fmtDate, relDays, todayISO } from '@/lib/dates.js';
 import { aed, plural } from '@/lib/format.js';
+import { PHASES } from '@/data/projectKinds.js';
+import { projectsOfSite } from '@/store/projectSelectors.js';
 import { contractStatus, contractsOfSite, deficienciesOfSite, jobStatus, jobsOfSite, visitState } from '@/store/serviceSelectors.js';
 import { list } from '@/store/selectors.js';
 import { useSession } from '@/store/session.js';
@@ -21,6 +23,7 @@ export function SiteService({ site }) {
   const jobs = jobsOfSite(s, site.id).toSorted((a, b) => (b.plannedOn || b.dueOn || '').localeCompare(a.plannedOn || a.dueOn || ''));
   const open = deficienciesOfSite(s, site.id).filter((d) => !['verified', 'declined'].includes(d.status));
   const certificates = list(s.certificates).filter((c) => c.siteId === site.id).toSorted((a, b) => b.issuedOn.localeCompare(a.issuedOn));
+  const projects = projectsOfSite(s, site.id);
   const eff = current ? contractStatus(current, today) : null;
   const rows = current?.visitPlan ?? [];
   const done = rows.filter((r) => visitState(r, s.jobs[r.jobId], today) === 'done').length;
@@ -95,6 +98,21 @@ export function SiteService({ site }) {
             </ul>
           )}
         </Card>
+        {projects.length > 0 && (
+          <Card title={`Projects (${projects.length})`}>
+            <ul className="-my-2 divide-y divide-slate-100">
+              {projects.map((p) => (
+                <li key={p.id}>
+                  <Link to={`/projects/${p.id}`} className="block py-2.5 hover:opacity-80">
+                    <span className="flex items-center gap-2"><span className="text-sm font-medium tabular-nums text-slate-900">{p.number}</span><Status kind="project" value={p.onHold ? 'on_hold' : p.phase} dot={false} /></span>
+                    <span className="mt-0.5 block text-sm text-slate-700">{p.title}</span>
+                    <span className="block text-xs text-slate-500">{PHASES[p.phase].label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
         <Card title="Certificates">
           {certificates.length === 0 ? (
             <p className="text-sm text-slate-500">None issued yet.</p>

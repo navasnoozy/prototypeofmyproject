@@ -16,13 +16,15 @@ export function buildEquipment(T) {
   let devN = 0;
   const pad = (n, w) => String(n).padStart(w, '0');
 
-  // add(site, type, name, location, installedYear, lastVisitDaysAgo, rows)
+  // add(site, type, name, location, installed, lastVisitDaysAgo, rows)
+  //   installed: a year (2015) or, for equipment that a project handed over, a date
   // row: [deviceType, qty, location, { make, model, last, months, condition }]
   const add = (siteId, type, name, location, installedYear, last, rows) => {
     const id = `sys_${++sysN}`;
+    const installedOn = typeof installedYear === 'string' ? installedYear : `${installedYear}-06-01`;
     systems[id] = {
       id, siteId, type, name, location,
-      installedOn: `${installedYear}-06-01`,
+      installedOn,
       status: 'in_service',
       notes: '',
     };
@@ -47,7 +49,7 @@ export function buildEquipment(T) {
         make: o.make ?? '',
         model: o.model ?? '',
         serial: o.serial ?? '',
-        installedOn: `${installedYear}-06-01`,
+        installedOn,
         lastServiced: addDays(T, -(o.last ?? last)),
         intervalMonths: o.months ?? def.months,
         condition: o.condition ?? 'ok',
@@ -173,6 +175,12 @@ export function buildEquipment(T) {
   add(gs, 'extinguishers', 'Portable extinguishers', 'All floors', 2009, 350, [
     ['abc6', 40, 'Corridors, all floors'],
     ['co2', 4, 'Electrical rooms'],
+  ]);
+  // Installed by project PRJ-2026-001 and handed over 112 days ago; its first
+  // maintenance visit was 86 days ago.
+  add(gs, 'emergency_lighting', 'Emergency lighting', 'All blocks', addDays(T, -112), 86, [
+    ['fitting', 140, 'Corridors and stairs, blocks A to F'],
+    ['exit', 48, 'Exits and stair doors, blocks A to F'],
   ]);
 
   // ---- Palm Grove Medical Centre -------------------------------------------

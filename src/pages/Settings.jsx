@@ -18,7 +18,7 @@ import { Card, DefinitionList, Page } from '@/ui/Page.jsx';
 const SAMPLE_KINDS = [
   ['customer', 'Customer'], ['enquiry', 'Enquiry'], ['quotation', 'Quotation'], ['contract', 'AMC contract'],
   ['job', 'Job'], ['deficiency', 'Deficiency'], ['report', 'Service report'], ['project', 'Project'],
-  ['po', 'Purchase order'], ['grn', 'Goods received'], ['invoice', 'Tax invoice'],
+  ['po', 'Purchase order'], ['grn', 'Goods received'], ['bill', 'Supplier bill'], ['invoice', 'Tax invoice'],
   ['creditNote', 'Credit note'], ['receipt', 'Receipt'],
 ];
 
@@ -120,8 +120,8 @@ export function Settings() {
   );
 }
 
-// Who must approve a quotation. The same limits will govern purchase orders
-// and credit notes in later steps. Only the owner changes them.
+// Who must approve a quotation or a purchase order. The same idea will govern
+// credit notes in a later step. Only the owner changes the limits.
 function ApprovalLimits() {
   const s = useStore();
   const { roleKey } = useSession();
@@ -132,6 +132,7 @@ function ApprovalLimits() {
     {
       salesLimit: String(a.salesLimit), managerLimit: String(a.managerLimit),
       salesDiscount: String(a.salesDiscount), managerDiscount: String(a.managerDiscount), marginFloor: String(a.marginFloor),
+      poLimit: String(a.poLimit), poManagerLimit: String(a.poManagerLimit),
     },
     (v) => ({
       ...(v.salesLimit !== '' && num(v.salesLimit) >= 0 ? {} : { salesLimit: 'Write an amount.' }),
@@ -139,17 +140,20 @@ function ApprovalLimits() {
       ...(v.salesDiscount !== '' && num(v.salesDiscount) >= 0 && num(v.salesDiscount) <= 100 ? {} : { salesDiscount: 'Write a percentage from 0 to 100.' }),
       ...(num(v.managerDiscount) >= num(v.salesDiscount) && num(v.managerDiscount) <= 100 ? {} : { managerDiscount: 'Not below the first discount, not above 100.' }),
       ...(num(v.marginFloor) >= 0 && num(v.marginFloor) < 100 ? {} : { marginFloor: 'Write a percentage below 100.' }),
+      ...(v.poLimit !== '' && num(v.poLimit) >= 0 ? {} : { poLimit: 'Write an amount.' }),
+      ...(num(v.poManagerLimit) >= num(v.poLimit) ? {} : { poManagerLimit: 'The manager\'s limit must not be below the first limit.' }),
     }),
   );
   const save = form.submit((v) => {
     saveApprovalLimits({
       salesLimit: num(v.salesLimit), managerLimit: num(v.managerLimit),
       salesDiscount: num(v.salesDiscount), managerDiscount: num(v.managerDiscount), marginFloor: num(v.marginFloor),
+      poLimit: num(v.poLimit), poManagerLimit: num(v.poManagerLimit),
     });
     toast('Approval limits saved');
   });
   return (
-    <Card title="Approval limits for quotations (samples)">
+    <Card title="Approval limits (samples)">
       <form onSubmit={save} inert={owner ? undefined : true} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="A sales person may send up to" hint="Net value of the quotation, before VAT." error={form.error('salesLimit')}>
           <TextInput {...form.bind('salesLimit')} prefix="AED" inputMode="decimal" />
@@ -166,10 +170,17 @@ function ApprovalLimits() {
         <Field label="Margin below which a manager must approve" error={form.error('marginFloor')}>
           <TextInput {...form.bind('marginFloor')} suffix="%" inputMode="decimal" />
         </Field>
+        <p className="border-t border-slate-100 pt-4 text-xs font-medium text-slate-700 sm:col-span-2">Purchase orders</p>
+        <Field label="A purchase officer may order up to" hint="Net value of the order, before VAT." error={form.error('poLimit')}>
+          <TextInput {...form.bind('poLimit')} prefix="AED" inputMode="decimal" />
+        </Field>
+        <Field label="The operations manager may approve up to" hint="Above this the owner approves." error={form.error('poManagerLimit')}>
+          <TextInput {...form.bind('poManagerLimit')} prefix="AED" inputMode="decimal" />
+        </Field>
         <button type="submit" className="hidden" />
       </form>
       <p className="mt-4 text-xs text-slate-500">
-        A customer on hold always needs the owner. If the person who prepared a quotation already has the authority, nobody else has to approve it; the one who approves is never the one who prepared it, except the owner.
+        A customer on hold always needs the owner. If the person who prepared a quotation or an order already has the authority, nobody else has to approve it; the one who approves is never the one who prepared it, except the owner. An order for a project that takes a package over its budget always needs the operations manager.
       </p>
       <div className="mt-4">
         <Button variant="primary" size="sm" disabled={!owner} onClick={save}>Save limits</Button>

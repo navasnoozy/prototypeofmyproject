@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowRightIcon, BoxIcon, ClipboardListIcon, CornerDownLeftIcon, FileSignatureIcon, FileTextIcon, InboxIcon, MapPinIcon, PlusIcon, SearchIcon, TagIcon, TriangleAlertIcon, XIcon } from 'lucide-react';
+import { ArrowRightIcon, BoxIcon, ClipboardListIcon, CornerDownLeftIcon, FileSignatureIcon, FileTextIcon, HardHatIcon, InboxIcon, MapPinIcon, PlusIcon, SearchIcon, ShoppingCartIcon, TagIcon, TriangleAlertIcon, TruckIcon, XIcon } from 'lucide-react';
 import { AREAS } from '@/data/areas.js';
 import { cn } from '@/lib/cn.js';
 import { splitMatch } from '@/lib/format.js';
+import { itemSearchEntries } from '@/store/inventorySelectors.js';
+import { purchaseSearchEntries } from '@/store/purchaseSelectors.js';
 import { salesSearchEntries } from '@/store/salesSelectors.js';
 import { buildSearchIndex } from '@/store/selectors.js';
+import { projectSearchEntries } from '@/store/projectSelectors.js';
 import { serviceSearchEntries } from '@/store/serviceSelectors.js';
 import { useSession } from '@/store/session.js';
 import { useStore } from '@/store/store.js';
@@ -34,7 +37,7 @@ const pushRecent = (entry) => {
   }
 };
 
-const TYPE_ORDER = ['Go to', 'Customers', 'Sites', 'Contacts', 'Enquiries', 'Quotations', 'Contracts', 'Jobs', 'Deficiencies', 'Equipment', 'Catalogue'];
+const TYPE_ORDER = ['Go to', 'Customers', 'Sites', 'Contacts', 'Enquiries', 'Quotations', 'Contracts', 'Jobs', 'Deficiencies', 'Projects', 'Purchase orders', 'Suppliers', 'Items', 'Equipment'];
 
 function score(entry, tokens) {
   const title = entry.title.toLowerCase();
@@ -53,7 +56,7 @@ function Row({ entry, query, active, onHover, onPick }) {
   if (entry.type === 'Customers') lead = <Avatar name={entry.title} shape="square" size="sm" />;
   else if (entry.type === 'Contacts') lead = <Avatar name={entry.title} size="sm" />;
   else {
-    const Icon = { Sites: MapPinIcon, Equipment: BoxIcon, Action: PlusIcon, Enquiries: InboxIcon, Quotations: FileTextIcon, Catalogue: TagIcon, Contracts: FileSignatureIcon, Jobs: ClipboardListIcon, Deficiencies: TriangleAlertIcon }[entry.type] ?? ArrowRightIcon;
+    const Icon = { Sites: MapPinIcon, Equipment: BoxIcon, Action: PlusIcon, Enquiries: InboxIcon, Quotations: FileTextIcon, Items: TagIcon, 'Purchase orders': ShoppingCartIcon, Suppliers: TruckIcon, Contracts: FileSignatureIcon, Jobs: ClipboardListIcon, Deficiencies: TriangleAlertIcon, Projects: HardHatIcon }[entry.type] ?? ArrowRightIcon;
     lead = (
       <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-600">
         <Icon className="size-4" aria-hidden="true" />
@@ -140,6 +143,9 @@ export function Search({ onOpenChange }) {
       ...buildSearchIndex(state).filter(() => access('customers')),
       ...salesSearchEntries(state).filter(() => access('sales')),
       ...serviceSearchEntries(state).filter(() => access('service')),
+      ...projectSearchEntries(state).filter(() => access('projects')),
+      ...purchaseSearchEntries(state).filter(() => access('purchases')),
+      ...itemSearchEntries(state).filter(() => access('inventory')),
     ];
     // `access` follows the person, who is part of the state.
   }, [state]);

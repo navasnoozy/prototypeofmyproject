@@ -260,7 +260,6 @@ export function buildService(T, { sites, systems: systemsIn, devices: devicesIn,
   const followUps = {
     qt_119: { type: 'contract', id: 'con_12', number: 'AMC-2026-0010' },
     qt_146: { type: 'job', id: 'jb_3', number: jobs.jb_3.number },
-    qt_102: { type: 'project', id: '', number: 'PRJ-2026-002' },
   };
   const ev = (entity, entityId, by, daysAgo, text) => ({ entity, entityId, by, daysAgo, text });
   const events = [

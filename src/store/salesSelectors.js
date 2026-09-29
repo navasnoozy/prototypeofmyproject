@@ -168,7 +168,7 @@ export function salesAttention(s, today, viewerId) {
   return items;
 }
 
-/** Enquiries, quotations and catalogue items for the global search. */
+/** Enquiries and quotations for the global search. */
 export function salesSearchEntries(s) {
   const entries = [];
   for (const e of list(s.enquiries)) {
@@ -181,12 +181,6 @@ export function salesSearchEntries(s) {
     entries.push({
       type: 'Quotations', id: q.id, title: `${quotationLabel(q)} · ${q.title}`,
       sub: s.customers[q.customerId]?.name ?? '', path: `/sales/quotations/${q.id}`, keywords: q.kind,
-    });
-  }
-  for (const i of list(s.items)) {
-    entries.push({
-      type: 'Catalogue', id: i.id, title: `${i.code} · ${i.name}`,
-      sub: `${i.category} · AED ${money(i.price)} per ${i.unit}`, path: `/sales/catalogue?open=${i.id}`, keywords: '',
     });
   }
   return entries;

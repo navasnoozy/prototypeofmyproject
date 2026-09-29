@@ -109,6 +109,19 @@ function OfficeHome() {
                 customer's signature, issue the report and send it. Then look at the equipment of that site: the due dates moved.
               </li>
               <li>
+                Plan the week: open <Link className="font-medium text-slate-900 underline underline-offset-2" to="/schedule">Schedule</Link> and drag <strong className="font-semibold text-slate-900">Planned visit 2 of 4</strong> from the list onto a person and a day.
+                Drop work on a day of Rashid Ali's training next week and see the warning. Press <strong className="font-semibold text-slate-900">Phone view</strong> first, and watch the job arrive on a technician's phone.
+              </li>
+              <li>
+                Follow a project: <Link className="font-medium text-slate-900 underline underline-offset-2" to="/projects/prj_2">PRJ-2026-002</Link> (Tower B). Look at the sprinkler package that is over its budget, make the progress claim, and record a certificate for less than was claimed.
+              </li>
+              <li>
+                Hand over <Link className="font-medium text-slate-900 underline underline-offset-2" to="/projects/prj_3?tab=handover">PRJ-2026-003</Link>: record the Civil Defence certificate, close the snags, issue the documents, and press Hand over. The pump set appears in the equipment register and a maintenance contract is offered.
+              </li>
+              <li>
+                Start a project: as the owner, approve <Link className="font-medium text-slate-900 underline underline-offset-2" to="/sales/quotations/qt_136">QT-2026-0136</Link>, send it, record the answer, and press Start the project.
+              </li>
+              <li>
                 Follow a repair from the start: <Link className="font-medium text-slate-900 underline underline-offset-2" to="/service/deficiencies/def_209">DEF-2026-0209</Link> is not reported yet. Report it, make the repair quotation,
                 and follow the deficiency until it is verified. <Link className="font-medium text-slate-900 underline underline-offset-2" to="/service/deficiencies/def_211">DEF-2026-0211</Link> is an impairment: its system is out of service.
               </li>

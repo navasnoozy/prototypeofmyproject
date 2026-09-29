@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn.js';
 import { fmtDate, relDays, todayISO } from '@/lib/dates.js';
 import { money } from '@/lib/format.js';
 import { updateQuotation } from '@/store/salesActions.js';
+import { startProjectFromQuotation } from '@/store/projectActions.js';
 import { startContractFromQuotation, startRepairJob } from '@/store/serviceActions.js';
 import { canPlanJobs } from '@/store/serviceSelectors.js';
 import { useSession } from '@/store/session.js';
@@ -232,12 +233,12 @@ export function PartiesCard({ q }) {
 }
 
 const NEXT = {
-  project: 'The project starts in Projects: a budget taken from the costs of this quotation, its stages, and the advance invoice.',
+  project: 'The project starts in Projects: its packages and their budgets are taken from the sections and costs of this quotation, and the advance claim is made.',
   contract: 'The contract is created in Service with its visit plan and its billing plan, and goes to the authority for approval before the first visit.',
   repair: 'A repair job is created in Service from this quotation and planned in Schedule. The deficiency it answers is updated.',
   supply: 'The goods are issued from the store and delivered; one invoice follows in Billing.',
 };
-const NEXT_STEP = { project: 'step 5', supply: 'steps 6 and 7' };
+const NEXT_STEP = { supply: 'steps 6 and 7' };
 
 // After the customer said yes: what starts, and where. For a contract and a
 // repair the work starts from here, in Service; the card then links to it.
@@ -246,6 +247,7 @@ export function NextStepCard({ q }) {
   const { canEdit, roleKey } = useSession();
   const f = q.followUp;
   const service = canEdit('service') && canPlanJobs(roleKey);
+  const projects = canEdit('projects');
   let text = NEXT[q.kind];
   let action = null;
   let note = NEXT_STEP[q.kind] ? `This step is built in ${NEXT_STEP[q.kind]} of the prototype; until then the quotation only shows that it was accepted.` : '';
@@ -279,6 +281,27 @@ export function NextStepCard({ q }) {
       );
     } else {
       note = 'The service coordinator starts it from here or from Service.';
+    }
+  } else if (q.kind === 'project') {
+    if (f?.type === 'project' && f.id) {
+      text = `Project ${f.number} was started from this quotation.`;
+      action = <Button size="sm" variant="primary" to={`/projects/${f.id}`}>Open project</Button>;
+    } else if (projects) {
+      action = (
+        <Button
+          size="sm"
+          variant="primary"
+          onClick={() => {
+            const id = startProjectFromQuotation(q.id);
+            toast('Project started: design and approvals');
+            navigate(`/projects/${id}`);
+          }}
+        >
+          Start the project
+        </Button>
+      );
+    } else {
+      note = 'The project engineer starts it from here or from Projects.';
     }
   } else if (f?.number) {
     text = `${NEXT[q.kind]} It is ${f.number}.`;

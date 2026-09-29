@@ -1,3 +1,5 @@
+import { CLAIM_STATUS, DOC_STATUS, PROJECT_STATUS, TASK_STATUS, VARIATION_STATUS } from '@/data/projectKinds.js';
+import { BILL_STATUS, PO_STATUS, STOCK_STATE } from '@/data/purchaseKinds.js';
 import { CD_STATUS, CONTRACT_STATUS, DEFICIENCY_STATUS, SEVERITY } from '@/data/serviceKinds.js';
 import { cn } from '@/lib/cn.js';
 import { initials } from '@/lib/format.js';
@@ -94,6 +96,14 @@ export const STATUS = {
   contract: CONTRACT_STATUS,
   deficiency: DEFICIENCY_STATUS,
   cd: CD_STATUS,
+  project: PROJECT_STATUS,
+  variation: VARIATION_STATUS,
+  claim: CLAIM_STATUS,
+  document: DOC_STATUS,
+  task: TASK_STATUS,
+  po: PO_STATUS,
+  bill: BILL_STATUS,
+  stock: STOCK_STATE,
   severity: Object.fromEntries(Object.entries(SEVERITY).map(([key, v]) => [key, [v.tone, v.label]])),
 };
 

@@ -13,6 +13,8 @@ export function useSession() {
     roleKey: user.roleKey,
     access: (areaId) => role.access[areaId] ?? null,
     canEdit: (areaId) => role.access[areaId] === 'edit',
+    // What the person may do inside an area (see ACTIONS in data/roles.js).
+    may: (action) => role.can?.includes(action) ?? false,
     areas: AREAS.filter((a) => role.access[a.id]),
   };
 }

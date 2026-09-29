@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowRightIcon, MapPinIcon, NavigationIcon, PhoneIcon, PlayIcon, PlusIcon, SearchIcon } from 'lucide-react';
+import { ArrowRightIcon, HardHatIcon, MapPinIcon, NavigationIcon, PhoneIcon, PlayIcon, PlusIcon, SearchIcon } from 'lucide-react';
 import { URGENCY } from '@/data/quotationKinds.js';
 import { JOB_KINDS, WINDOWS } from '@/data/serviceKinds.js';
 import { cn } from '@/lib/cn.js';
-import { fmtDay, relDays, todayISO } from '@/lib/dates.js';
+import { addDays, fmtDay, relDays, todayISO } from '@/lib/dates.js';
 import { plural } from '@/lib/format.js';
+import { boardItems } from '@/store/scheduleSelectors.js';
 import { list } from '@/store/selectors.js';
 import { startJob } from '@/store/serviceActions.js';
 import { useSession } from '@/store/session.js';
@@ -149,6 +150,11 @@ export function TechnicianToday() {
   const waiting = mine.filter((j) => j.status === 'completed').toSorted((a, b) => b.completedOn.localeCompare(a.completedOn));
   const doneToday = mine.filter((j) => ['completed', 'report_sent'].includes(j.status) && j.completedOn === today).length;
   const [first, ...rest] = dueToday;
+  // The site work of projects that is planned for this person in the next days.
+  // A piece of work that runs over several days is one line, with its days.
+  const siteDays = boardItems(s, today, addDays(today, 7)).filter((i) => i.staffId === user.id && i.kind === 'task' && i.status !== 'done');
+  const siteWork = [...siteDays.reduce((m, i) => m.set(i.id, m.has(i.id) ? { ...m.get(i.id), last: i.date } : { ...i, last: i.date }), new Map()).values()];
+  const siteToday = siteDays.filter((i) => i.date === today);
 
   const when = (j) => `${j.plannedOn < today ? `was planned for ${fmtDay(j.plannedOn)}` : shortWindow(j.window) || 'today'}`;
 
@@ -165,10 +171,29 @@ export function TechnicianToday() {
             : `${plural(dueToday.length, 'job')} to do today${doneToday > 0 ? `, ${doneToday} done` : ''}.`}
         </p>
 
-        {first ? <NowCard j={first} /> : (
+        {first ? <NowCard j={first} /> : siteToday.length === 0 && (
           <EmptyState icon={MapPinIcon} title="Nothing to do right now" action={<Button to="/customers/sites" icon={SearchIcon}>Look up a site</Button>}>
             When the coordinator plans a job for you it appears here.
           </EmptyState>
+        )}
+
+        {siteWork.length > 0 && (
+          <Section title="Site work this week" count={siteWork.length}>
+            <ul className="space-y-2">
+              {siteWork.map((it) => (
+                <li key={it.key}>
+                  <Link to={it.sitePath} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 transition-colors duration-150 hover:bg-slate-50">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-700"><HardHatIcon className="size-5" aria-hidden="true" /></span>
+                    <span className="min-w-0 flex-1">
+                      <span className="line-clamp-2 text-sm font-medium text-slate-900">{it.title}</span>
+                      <span className="block truncate text-xs text-slate-500">{it.date === today ? 'today' : fmtDay(it.date)}{it.last !== it.date ? ` to ${fmtDay(it.last)}` : ''}, {shortWindow(it.window).toLowerCase()} · {it.sub}</span>
+                    </span>
+                    <ArrowRightIcon className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Section>
         )}
 
         {rest.length > 0 && (

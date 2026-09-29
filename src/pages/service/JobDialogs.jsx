@@ -6,6 +6,7 @@ import { plural } from '@/lib/format.js';
 import { billableHours, clockTime, durationWords } from '@/lib/useNow.js';
 import { cancelJob, completeJob, issueReport, planJob, sendReport, signJob } from '@/store/serviceActions.js';
 import { checklistProgress, unrecordedFails } from '@/store/serviceSelectors.js';
+import { absenceOn } from '@/store/scheduleSelectors.js';
 import { customerContacts, list } from '@/store/selectors.js';
 import { useStore } from '@/store/store.js';
 import { toast } from '@/store/toast.js';
@@ -57,11 +58,12 @@ export function PlanDrawer({ j, onClose }) {
           <div className="space-y-3 rounded-2xl border border-slate-200 p-4">
             {people.map((p) => {
               const others = load(p.value);
+              const away = values.plannedOn ? absenceOn(s, p.value, values.plannedOn) : null;
               return (
                 <Checkbox
                   key={p.value}
                   label={p.label}
-                  hint={`${p.sub}${others.length ? ` · ${plural(others.length, 'other job')} that day` : ' · free that day'}`}
+                  hint={`${p.sub}${away ? ` · not available (${away.kind === 'leave' ? 'leave' : away.kind === 'sick' ? 'sick leave' : away.kind})` : others.length ? ` · ${plural(others.length, 'other job')} that day` : ' · free that day'}`}
                   checked={values.assigneeIds.includes(p.value)}
                   onChange={(on) => toggle(p.value, on)}
                 />

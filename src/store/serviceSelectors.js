@@ -171,7 +171,7 @@ export function serviceAttention(s, today, viewerId) {
       items.push({
         id: 'jobs_need_planning', area: 'service', tone: 'blue',
         title: `${plural(needs.length, 'job')} need${needs.length === 1 ? 's' : ''} planning`,
-        text: 'Give each a day and the people who go.', to: '/service/jobs?status=unplanned',
+        text: 'Give each a day and the people who go, on the planning board.', to: '/schedule',
       });
     }
     const late = list(s.jobs).filter((j) => j.status === 'planned' && j.plannedOn && j.plannedOn < today);

@@ -3,12 +3,14 @@ import { STAFF } from './staff.js';
 import { buildContacts, buildCustomers, buildSites } from './customers.js';
 import { buildEquipment } from './equipment.js';
 import { DEFAULT_SETTINGS, buildItems, buildSales } from './sales.js';
+import { buildProjects } from './projects.js';
+import { addStockFields, buildPurchasing } from './purchasing.js';
 import { buildService } from './service.js';
 import { NUMBER_FORMATS } from '../numbering.js';
 
 // Bump this whenever the shape of the seed changes: a browser that saved an
 // older shape then starts again from the new seed instead of breaking.
-export const SEED_VERSION = 6;
+export const SEED_VERSION = 8;
 
 const byId = (list) => Object.fromEntries(list.map((x) => [x.id, x]));
 
@@ -17,12 +19,16 @@ const hoursAgo = (h) => new Date(Date.now() - h * 3_600_000).toISOString();
 export function buildSeed() {
   const T = todayISO();
   const { systems, devices } = buildEquipment(T);
-  const items = buildItems();
+  const items = addStockFields(buildItems());
   const sales = buildSales(T, { items, systems, devices });
   const sites = buildSites(T);
   const service = buildService(T, { sites, systems, devices, items, quotations: sales.quotations });
+  const projects = buildProjects(T, { quotations: sales.quotations, items, systems: service.systems });
+  // Suppliers, orders, deliveries, bills and the ledger of stock follow from the projects and the jobs.
+  const purchasing = buildPurchasing(T, { items, projects: projects.projects, jobs: service.jobs });
+  for (const [jobId, parts] of Object.entries(purchasing.jobParts)) service.jobs[jobId].parts = parts;
   // What accepted quotations started.
-  for (const [id, followUp] of Object.entries(service.followUps)) sales.quotations[id].followUp = followUp;
+  for (const [id, followUp] of Object.entries({ ...service.followUps, ...projects.followUps })) sales.quotations[id].followUp = followUp;
   const activity = [
     ['customer', 'cus_marina', 'staff_sara', 24 * 40, 'Payment terms set to Net 30'],
     ['customer', 'cus_marina', 'staff_sara', 24 * 1400, 'Customer created'],
@@ -42,6 +48,8 @@ export function buildSeed() {
     ['site', 'site_mall', 'staff_hassan', 24 * 90, 'Fire alarm system serviced (annual visit)'],
     ...sales.events.map((e) => [e.entity, e.entityId, e.by, 24 * e.daysAgo, e.text]),
     ...service.events.map((e) => [e.entity, e.entityId, e.by, 24 * e.daysAgo, e.text]),
+    ...projects.events.map((e) => [e.entity, e.entityId, e.by, 24 * e.daysAgo, e.text]),
+    ...purchasing.events.map((e) => [e.entity, e.entityId, e.by, 24 * e.daysAgo, e.text]),
   ].map(([entity, entityId, by, h, text], i) => ({
     id: `act_${i + 1}`, entity, entityId, by, at: hoursAgo(h), text,
   }));
@@ -64,12 +72,20 @@ export function buildSeed() {
     deficiencies: service.deficiencies,
     certificates: service.certificates,
     returns: service.returns,
+    projects: projects.projects,
+    absences: projects.absences,
     activity: byId(activity),
-    items,
+    items: purchasing.items,
+    suppliers: purchasing.suppliers,
+    locations: purchasing.locations,
+    purchaseOrders: purchasing.purchaseOrders,
+    receipts: purchasing.receipts,
+    bills: purchasing.bills,
+    movements: purchasing.movements,
     enquiries: sales.enquiries,
     quotations: sales.quotations,
     settings: DEFAULT_SETTINGS,
-    counters: { customer: 19, activity: activity.length, ...sales.counters, ...service.counters },
+    counters: { customer: 19, activity: activity.length, ...sales.counters, ...service.counters, ...projects.counters, ...purchasing.counters },
     seededOn: T,
   };
 }

@@ -13,7 +13,6 @@ import { CustomerList } from '@/pages/customers/CustomerList.jsx';
 import { SiteDetail } from '@/pages/customers/SiteDetail.jsx';
 import { SiteForm } from '@/pages/customers/SiteForm.jsx';
 import { SiteList } from '@/pages/customers/SiteList.jsx';
-import { Catalogue } from '@/pages/sales/Catalogue.jsx';
 import { EnquiryDetail } from '@/pages/sales/EnquiryDetail.jsx';
 import { EnquiryForm } from '@/pages/sales/EnquiryForm.jsx';
 import { EnquiryList } from '@/pages/sales/EnquiryList.jsx';
@@ -29,10 +28,22 @@ import { EquipmentRegister } from '@/pages/service/EquipmentRegister.jsx';
 import { JobDetail } from '@/pages/service/JobDetail.jsx';
 import { JobForm } from '@/pages/service/JobForm.jsx';
 import { JobList } from '@/pages/service/JobList.jsx';
+import { ProjectDetail } from '@/pages/projects/ProjectDetail.jsx';
+import { ProjectList } from '@/pages/projects/ProjectList.jsx';
+import { ScheduleHome } from '@/pages/schedule/ScheduleHome.jsx';
+import { Items } from '@/pages/inventory/Items.jsx';
+import { Movements } from '@/pages/inventory/Movements.jsx';
+import { Stock } from '@/pages/inventory/Stock.jsx';
+import { BillList } from '@/pages/purchases/BillList.jsx';
+import { PurchaseOrderDetail } from '@/pages/purchases/PurchaseOrderDetail.jsx';
+import { PurchaseOrderForm } from '@/pages/purchases/PurchaseOrderForm.jsx';
+import { PurchaseOrderList } from '@/pages/purchases/PurchaseOrderList.jsx';
+import { SupplierDetail } from '@/pages/purchases/SupplierDetail.jsx';
+import { SupplierList } from '@/pages/purchases/SupplierList.jsx';
 
 // Areas that are built in a later step show a page that explains what will be
 // there. Each is replaced by the real pages when its step is done.
-const LATER = AREAS.filter((a) => !['home', 'customers', 'sales', 'service'].includes(a.id));
+const LATER = AREAS.filter((a) => !['home', 'customers', 'sales', 'service', 'projects', 'schedule', 'purchases', 'inventory'].includes(a.id));
 
 export default function App() {
   return (
@@ -58,7 +69,7 @@ export default function App() {
           <Route path="quotations" element={<QuotationList />} />
           <Route path="quotations/new" element={<QuotationNew />} />
           <Route path="quotations/:quotationId" element={<QuotationDetail />} />
-          <Route path="catalogue" element={<Catalogue />} />
+          <Route path="catalogue" element={<Navigate to="/inventory" replace />} />
           <Route path=":enquiryId" element={<EnquiryDetail />} />
           <Route path=":enquiryId/edit" element={<EnquiryForm />} />
         </Route>
@@ -73,6 +84,31 @@ export default function App() {
           <Route path="equipment" element={<EquipmentRegister />} />
           <Route path="compliance" element={<Compliance />} />
           <Route path=":contractId" element={<ContractDetail />} />
+        </Route>
+
+        <Route path="projects" element={<Guard area="projects" />}>
+          <Route index element={<ProjectList />} />
+          <Route path=":projectId" element={<ProjectDetail />} />
+        </Route>
+
+        <Route path="schedule" element={<Guard area="schedule" />}>
+          <Route index element={<ScheduleHome />} />
+        </Route>
+
+        <Route path="purchases" element={<Guard area="purchases" />}>
+          <Route index element={<PurchaseOrderList />} />
+          <Route path="new" element={<PurchaseOrderForm />} />
+          <Route path="bills" element={<BillList />} />
+          <Route path="suppliers" element={<SupplierList />} />
+          <Route path="suppliers/:supplierId" element={<SupplierDetail />} />
+          <Route path=":poId" element={<PurchaseOrderDetail />} />
+          <Route path=":poId/edit" element={<PurchaseOrderForm />} />
+        </Route>
+
+        <Route path="inventory" element={<Guard area="inventory" />}>
+          <Route index element={<Items />} />
+          <Route path="stock" element={<Stock />} />
+          <Route path="movements" element={<Movements />} />
         </Route>
 
         {LATER.map((a) => (

@@ -3,8 +3,8 @@ import { amcSections } from '../amc.js';
 import { defaultKindData, defaultTerms, emptyApproval } from '../quotationKinds.js';
 
 // The item catalogue: what the company sells and uses, with a cost and a
-// selling price (AED, before VAT). All prices are samples. Until the Inventory
-// area exists (step 6) the catalogue is reached from Sales (record 39).
+// selling price (AED, before VAT). All prices are samples. The catalogue lives in
+// Inventory (Items); the stock fields are added by data/seed/purchasing.js.
 const RAW_ITEMS = [
   // code, name, category, unit, cost, price, kind
   ['FA-PNL-2L', 'Addressable fire alarm panel, 2 loops', 'Fire alarm', 'nos', 6200, 9400],
@@ -84,7 +84,12 @@ export const DEFAULT_SETTINGS = {
   validityDays: 30,
   // Who must approve a quotation (sample limits; the owner can change them in
   // Settings). A level is 0 nobody, 1 operations manager, 2 owner.
-  approvals: { salesLimit: 50000, managerLimit: 250000, salesDiscount: 5, managerDiscount: 10, marginFloor: 15 },
+  approvals: {
+    salesLimit: 50000, managerLimit: 250000, salesDiscount: 5, managerDiscount: 10, marginFloor: 15,
+    // Purchase orders: a purchase officer may commit up to poLimit alone; above it the
+    // operations manager approves, and above poManagerLimit the owner (samples).
+    poLimit: 10000, poManagerLimit: 100000,
+  },
 };
 
 // ---- builders -----------------------------------------------------------------
@@ -400,6 +405,55 @@ export function buildSales(T, { items, systems, devices }) {
     }),
   ];
 
+  // ---- two earlier project quotations, accepted long ago ---------------------------------
+  // They became PRJ-2026-001 (emergency lighting, Gulf Meridian Staff Accommodation)
+  // and PRJ-2026-003 (a fire pump set, Sharjah Plastics Factory). Their lines are made
+  // last, so the ids of the lines above do not change.
+  const staffLighting = fromSpec([
+    ['Emergency lighting and exit signs, blocks A to F', [['EL-FIT', 140], ['EL-EXIT', 48], ['LB-INST', 188]]],
+    ['Testing, documents and approvals', [['LB-TEST', 1], ['DOC-DRW', 1], ['DOC-CD', 1], ['DOC-ASB', 1]]],
+  ]);
+  const sharjahPump = fromSpec([
+    ['Fire pump set and controller', [['PU-EL', 1], ['PU-JP', 1], ['LB-INST', 40]]],
+    ['Testing, documents and approvals', [['LB-TEST', 1], ['DOC-DRW', 1], ['DOC-CD', 1], ['DOC-ASB', 1]]],
+  ]);
+  E.push(
+    enquiry({
+      id: 'enq_19', number: 'ENQ-2026-0019', customerId: 'cus_meridian', siteId: 'site_meridian_staff', contactId: 'ct_8', kind: 'project',
+      title: 'Emergency lighting and exit signs, staff accommodation', source: 'referral', receivedOn: D(-292), dueOn: D(-284),
+      ownerId: 'staff_sara', estValue: 62000, status: 'won',
+      description: 'The old blocks have no emergency lighting; the fire authority asked for it at the last inspection.',
+      survey: { needed: true, plannedOn: D(-291), assigneeId: 'staff_nadia', doneOn: D(-291), notes: 'Six blocks; 140 fittings and 48 exit signs along corridors and stairs.' },
+    }),
+    enquiry({
+      id: 'enq_26', number: 'ENQ-2026-0026', customerId: 'cus_sharjah', siteId: 'site_sharjah', contactId: 'ct_45', kind: 'project',
+      title: 'Fire pump set for the sprinkler system', source: 'phone', receivedOn: D(-84), dueOn: D(-76),
+      ownerId: 'staff_layla', estValue: 125000, status: 'won',
+      description: 'The sprinklers run from the town main at low pressure; the insurer asks for a pump set.',
+      survey: { needed: true, plannedOn: D(-83), assigneeId: 'staff_nadia', doneOn: D(-83), notes: 'Space in the valve room is enough for an electric pump and a jockey pump.' },
+    }),
+  );
+  Q.push(
+    quote({
+      id: 'qt_088', number: 'QT-2026-0088', enquiryId: 'enq_19', customerId: 'cus_meridian', siteId: 'site_meridian_staff', contactId: 'ct_8',
+      kind: 'project', title: 'Emergency lighting and exit signs, staff accommodation', status: 'accepted', createdOn: D(-290),
+      preparedBy: 'staff_sara', ...staffLighting,
+      kindData: { durationWeeks: 6, advancePct: 30, retentionPct: 5, cdApproval: 'contractor' },
+      approval: { required: 'manager', reasons: ['Net value above AED 50,000'], requestedBy: 'staff_sara', requestedOn: D(-289), comment: '', decision: 'approved', decidedBy: 'staff_omar', decidedOn: D(-288), decisionNote: 'Approved.' },
+      sent: { on: D(-286), to: ['ct_8'], message: 'Please find our quotation for the emergency lighting of the staff accommodation.' },
+      answer: accepted(268, 'lpo', 'ct_8', 'GM/LPO/2209'),
+    }),
+    quote({
+      id: 'qt_112', number: 'QT-2026-0112', enquiryId: 'enq_26', customerId: 'cus_sharjah', siteId: 'site_sharjah', contactId: 'ct_45',
+      kind: 'project', title: 'Fire pump set for the sprinkler system', status: 'accepted', createdOn: D(-80),
+      preparedBy: 'staff_layla', ...sharjahPump,
+      kindData: { durationWeeks: 8, advancePct: 30, retentionPct: 5, cdApproval: 'contractor' },
+      approval: { required: 'manager', reasons: ['Net value above AED 50,000'], requestedBy: 'staff_layla', requestedOn: D(-80), comment: '', decision: 'approved', decidedBy: 'staff_layla', decidedOn: D(-80), decisionNote: 'The owner prepared it and holds the authority.' },
+      sent: { on: D(-76), to: ['ct_45'], message: 'Our quotation for the fire pump set.' },
+      answer: accepted(60, 'signed', 'ct_45'),
+    }),
+  );
+
   // ---- what happened, for the activity lists ------------------------------------------
   const ev = (entity, entityId, by, daysAgo, text) => ({ entity, entityId, by, daysAgo, text });
   const events = [
@@ -431,6 +485,15 @@ export function buildSales(T, { items, systems, devices }) {
     ev('quotation', 'qt_146', 'staff_hassan', 18, 'Accepted by the customer (e-mail)'),
     ev('enquiry', 'enq_40', 'staff_sara', 40, 'Lost: chose a competitor'),
     ev('customer', 'cus_crescent', 'staff_sara', 40, 'Enquiry ENQ-2026-0040 lost: chose a competitor'),
+    ev('enquiry', 'enq_19', 'staff_sara', 292, 'Enquiry registered (referral)'),
+    ev('enquiry', 'enq_19', 'staff_layla', 268, 'Won: the customer\'s order was received'),
+    ev('quotation', 'qt_088', 'staff_sara', 290, 'Quotation created (project)'),
+    ev('quotation', 'qt_088', 'staff_omar', 288, 'Approved'),
+    ev('quotation', 'qt_088', 'staff_sara', 268, 'Accepted by the customer (customer order GM/LPO/2209)'),
+    ev('enquiry', 'enq_26', 'staff_layla', 84, 'Enquiry registered (phone)'),
+    ev('enquiry', 'enq_26', 'staff_layla', 60, 'Won: the customer signed the quotation'),
+    ev('quotation', 'qt_112', 'staff_layla', 80, 'Quotation created (project)'),
+    ev('quotation', 'qt_112', 'staff_layla', 60, 'Accepted by the customer (signed quotation)'),
   ];
 
   return {

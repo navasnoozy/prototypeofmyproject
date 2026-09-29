@@ -111,6 +111,7 @@ export const resetDemo = () => commit(fresh(state.session));
  *   tx.patch(table, id, changes)   merge into a row
  *   tx.remove(table, id)           delete a row
  *   tx.number(kind)                the next document number, e.g. "CUS-0020"
+ *   tx.next(kind)                  the next whole number of a counter (ledger rows)
  *   tx.log(entity, id, text)       one line in the activity list
  */
 export function transact(fn) {
@@ -135,10 +136,14 @@ export function transact(fn) {
       delete copy[id];
       draft[table] = copy;
     },
-    number(kind) {
+    // The next whole number of a counter (documents and ledger rows).
+    next(kind) {
       const n = (draft.counters[kind] ?? 0) + 1;
       draft.counters = { ...draft.counters, [kind]: n };
-      return NUMBER_FORMATS[kind](n);
+      return n;
+    },
+    number(kind) {
+      return NUMBER_FORMATS[kind](tx.next(kind));
     },
     log(entity, entityId, text) {
       const n = (draft.counters.activity ?? 0) + 1;

@@ -5,7 +5,7 @@ import { answerDeficiencyQuotation, linkQuotationToDeficiency } from './links.js
 import { transact } from './store.js';
 import { approvalNeeds, quotationLabel } from './salesSelectors.js';
 
-// Every change to enquiries, quotations, the catalogue and the approval limits.
+// Every change to enquiries, quotations and the approval limits (the catalogue is in inventoryActions.js).
 // Each one is one transaction and writes its line into the activity lists.
 
 const emptySurvey = { needed: false, plannedOn: '', assigneeId: '', doneOn: '', notes: '' };
@@ -284,17 +284,10 @@ export function importCoverage(id, systemIds) {
   });
 }
 
-// ---- catalogue and approval limits -----------------------------------------------------
-export function saveItem(item) {
-  return transact((tx) => {
-    const id = item.id ?? tx.id('item');
-    tx.put('items', { active: true, kind: 'material', ...item, id });
-    return id;
-  });
-}
-
+// ---- approval limits -----------------------------------------------------------------------
 export function saveApprovalLimits(approvals) {
   transact((tx) => {
-    tx.set('settings', { ...tx.state().settings, approvals });
+    const settings = tx.state().settings;
+    tx.set('settings', { ...settings, approvals: { ...settings.approvals, ...approvals } });
   });
 }

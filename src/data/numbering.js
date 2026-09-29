@@ -13,6 +13,7 @@ export const NUMBER_FORMATS = {
   report: (n) => `SR-${yr()}-${pad(n, 4)}`,
   project: (n) => `PRJ-${yr()}-${pad(n, 3)}`,
   po: (n) => `PO-${yr()}-${pad(n, 4)}`,
+  bill: (n) => `BILL-${yr()}-${pad(n, 4)}`,
   grn: (n) => `GRN-${yr()}-${pad(n, 4)}`,
   invoice: (n) => `INV-${yr()}-${pad(n, 4)}`,
   creditNote: (n) => `CN-${yr()}-${pad(n, 4)}`,

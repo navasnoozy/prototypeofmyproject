@@ -1,6 +1,11 @@
+import { lowStockRows, movementRows, negativeBalances, stockRows } from '@/store/inventorySelectors.js';
+import { billRows, inSegment, orderViews } from '@/store/purchaseSelectors.js';
 import { latestQuotations } from '@/store/salesSelectors.js';
 import { list, siteHealth, siteSummary, summariseDevices } from '@/store/selectors.js';
 import { contractStatus, jobStatus, openDeficiencies } from '@/store/serviceSelectors.js';
+import { isActive, overBudget, readyToHandOver } from '@/store/projectSelectors.js';
+import { boardItems, dayProblems, fieldStaff, queueItems } from '@/store/scheduleSelectors.js';
+import { addDays } from '@/lib/dates.js';
 import { addMonths, todayISO } from '@/lib/dates.js';
 
 // The small facts shown next to a sub module in the sidebar popup: a count,
@@ -41,7 +46,6 @@ export function pageInfo(s, areaId, pageId) {
         note: waiting > 0 ? { tone: 'orange', text: `${waiting} waiting approval` } : undefined,
       };
     }
-    if (pageId === 'catalogue') return { count: list(s.items).filter((i) => i.active).length };
   }
   if (areaId === 'service') {
     const today = todayISO();
@@ -78,6 +82,52 @@ export function pageInfo(s, areaId, pageId) {
       return { count: sum.rows, note: sum.overdue > 0 ? { tone: 'orange', text: `${sum.overdue} overdue` } : undefined };
     }
   }
+  if (areaId === 'projects' && pageId === 'projects') {
+    const active = list(s.projects).filter(isActive);
+    const over = active.filter((p) => overBudget(p).length > 0).length;
+    const ready = active.filter((p) => p.phase === 'handover' && readyToHandOver(p)).length;
+    return {
+      count: active.length,
+      note: over > 0 ? { tone: 'orange', text: `${over} over budget` } : ready > 0 ? { tone: 'orange', text: `${ready} ready to hand over` } : undefined,
+    };
+  }
+  if (areaId === 'schedule' && pageId === 'board') {
+    const today = todayISO();
+    const queue = queueItems(s, today);
+    const items = boardItems(s, today, addDays(today, 7));
+    let clashes = 0;
+    for (const person of fieldStaff(s)) for (let i = 0; i <= 7; i += 1) if (dayProblems(s, person.id, addDays(today, i), items).length > 0) clashes += 1;
+    return {
+      count: queue.jobs.length + queue.tasks.length,
+      note: clashes > 0 ? { tone: 'orange', text: `${clashes} clash${clashes === 1 ? '' : 'es'} this week` } : undefined,
+    };
+  }
+  if (areaId === 'purchases') {
+    const today = todayISO();
+    if (pageId === 'orders') {
+      const views = orderViews(s, today);
+      const late = views.filter((v) => v.late).length;
+      const waiting = views.filter((v) => v.status === 'waiting_approval').length;
+      return {
+        count: views.filter((v) => inSegment(v, 'open')).length,
+        note: late > 0 ? { tone: 'red', text: `${late} late` } : waiting > 0 ? { tone: 'orange', text: `${waiting} waiting approval` } : undefined,
+      };
+    }
+    if (pageId === 'bills') {
+      const unpaid = billRows(s, today).filter((r) => r.state !== 'paid');
+      const overdue = unpaid.filter((r) => r.state === 'overdue').length;
+      return { count: unpaid.length, note: overdue > 0 ? { tone: 'red', text: `${overdue} overdue` } : undefined };
+    }
+    if (pageId === 'suppliers') return { count: list(s.suppliers).filter((x) => x.active).length };
+  }
+  if (areaId === 'inventory') {
+    if (pageId === 'items') return { count: list(s.items).filter((i) => i.active).length };
+    if (pageId === 'stock') {
+      const low = lowStockRows(stockRows(s)).length;
+      const negative = negativeBalances(s).length;
+      return { note: negative > 0 ? { tone: 'red', text: `${negative} need a count` } : low > 0 ? { tone: 'orange', text: `${low} below minimum` } : undefined };
+    }
+    if (pageId === 'movements') return { count: movementRows(s).length };
+  }
   return {};
 }
-

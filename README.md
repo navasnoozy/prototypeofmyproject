@@ -31,8 +31,8 @@ phone numbers, TRNs and amounts are samples.
 | 2    | Sales: enquiries, quotations of four kinds with approval, catalogue | built |
 | 3    | Service: contracts, jobs (visits, call-outs, repairs), deficiencies, equipment register, compliance | built |
 | 4    | Technician phone view: Today, job page for the phone, photos, timer, phone frame next to the office | built |
-| 5    | Schedule and Projects           | next        |
-| 6    | Purchases and Inventory         | to come     |
+| 5    | Projects (packages, site work, costs, variations, claims, documents, testing and handover) and the Schedule planning board | built |
+| 6    | Purchases and Inventory         | next        |
 | 7    | Billing                         | to come     |
 | 8    | Home by role, Reports, Journeys | to come     |
 

@@ -13,7 +13,7 @@ import {
 
 // The step of the prototype that is finished. An area whose `step` is not above
 // this number is built; the others show a page that says what will be there.
-export const BUILT_UP_TO = 4;
+export const BUILT_UP_TO = 6;
 export const isBuilt = (area) => area.step <= BUILT_UP_TO;
 
 // The ten areas of record 39 (still Proposed), in the order of the business
@@ -62,7 +62,6 @@ export const AREAS = [
     pages: [
       { id: 'enquiries', label: 'Enquiries', path: '/sales', blurb: 'Requests that come in, from first call to a quotation.' },
       { id: 'quotations', label: 'Quotations', path: '/sales/quotations', blurb: 'One quotation with four kinds: project, contract, repair, supply.' },
-      { id: 'catalogue', label: 'Catalogue', path: '/sales/catalogue', blurb: 'Items and prices for quotations. It moves to Inventory in step 6.' },
     ],
     actions: [
       { label: 'New enquiry', sub: 'Register a request from a customer', path: '/sales/new' },
@@ -120,8 +119,13 @@ export const AREAS = [
     step: 6,
     purpose: 'Buying: suppliers, purchase orders, receipts, supplier bills.',
     tagline: 'Buying what we need',
+    actions: [
+      { label: 'New purchase order', sub: 'Order goods from a supplier', path: '/purchases/new' },
+      { label: 'New supplier', sub: 'Add a company we buy from', path: '/purchases/suppliers?new=1' },
+    ],
     pages: [
       { id: 'orders', label: 'Purchase orders', path: '/purchases', blurb: 'What we ordered, from whom, and what has arrived.' },
+      { id: 'bills', label: 'Supplier bills', path: '/purchases/bills', blurb: 'What suppliers billed, what is due, what is paid.' },
       { id: 'suppliers', label: 'Suppliers', path: '/purchases/suppliers', blurb: 'Who we buy from, with terms and history.' },
     ],
   },
@@ -133,8 +137,11 @@ export const AREAS = [
     step: 6,
     purpose: 'What we have and where: items, stock, movements.',
     tagline: 'What we have and where',
+    actions: [
+      { label: 'New item', sub: 'Add a product or a service to the catalogue', path: '/inventory?new=1' },
+    ],
     pages: [
-      { id: 'items', label: 'Items', path: '/inventory', blurb: 'The catalogue of products and services we sell and use.' },
+      { id: 'items', label: 'Items', path: '/inventory', blurb: 'Products and services we sell and use, with prices and stock levels.' },
       { id: 'stock', label: 'Stock', path: '/inventory/stock', blurb: 'What is in the store and in each van.' },
       { id: 'movements', label: 'Movements', path: '/inventory/movements', blurb: 'Every receipt, issue and transfer.' },
     ],
