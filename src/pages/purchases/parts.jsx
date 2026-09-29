@@ -39,7 +39,7 @@ export function ForCell({ po, link = true }) {
   const text = forWhat(s, po);
   const to = po.purpose === 'project' ? `/projects/${po.projectId}?tab=materials` : po.purpose === 'job' ? `/service/jobs/${po.jobId}` : '';
   return (
-    <span className="text-slate-700">
+    <span className="whitespace-nowrap text-slate-700">
       {po.purpose === 'stock' ? PO_PURPOSE.stock : link && to ? <Link to={to} onClick={(e) => e.stopPropagation()} className="font-medium underline-offset-2 hover:underline">{text}</Link> : text}
     </span>
   );

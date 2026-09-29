@@ -157,7 +157,7 @@ export function orderSteps(v) {
   const billedNow = keys[openStep] === 'billed';
   const label = {
     draft: 'Draft',
-    approval: status === 'waiting_approval' ? 'Waiting approval' : ['approved', 'sent', 'partly_received', 'received', 'closed'].includes(status) ? 'Approved' : 'Approval',
+    approval: status === 'waiting_approval' ? 'Waiting approval' : po.approval.decision === 'approved' ? 'Approved' : 'Approval',
     sent: 'Sent',
     delivered: status === 'partly_received' ? 'Partly delivered' : ['received', 'closed'].includes(status) ? 'Delivered' : 'Delivery',
     billed: status === 'closed' ? 'Billed and paid' : billedNow ? (progress.allBilled ? 'Billed, to pay' : 'To bill') : 'Billed',

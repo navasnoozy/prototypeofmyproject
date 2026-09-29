@@ -16,7 +16,7 @@ import { LifeCycle } from '@/ui/LifeCycle.jsx';
 import { Card, EmptyState, Page, Tabs } from '@/ui/Page.jsx';
 import { DeficiencyDrawer } from './DeficiencyDialogs.jsx';
 import { CancelDialog, CompleteDialog, IssueDialog, PlanDrawer, SendDialog, SignDrawer } from './JobDialogs.jsx';
-import { ChecklistCard, DetailsCard, FindingsCard, OnSiteTimer, PartsTimeCard, ReportedCard, SignoffCard, WhereCard } from './JobPanels.jsx';
+import { ChecklistCard, DetailsCard, FindingsCard, JobOrdersCard, OnSiteTimer, PartsTimeCard, ReportedCard, SignoffCard, WhereCard } from './JobPanels.jsx';
 import { ReportPreview } from './ReportPreview.jsx';
 
 const ABOUT = {
@@ -133,6 +133,7 @@ function Body({ j }) {
               )}
               {(live || done) && <FindingsCard j={j} editable={writable} canRecord={writable} onRecord={record} />}
               {(live || done) && <PartsTimeCard j={j} editable={writable} />}
+              {st !== 'cancelled' && <JobOrdersCard j={j} />}
               {!live && !done && st !== 'cancelled' && j.kind !== 'planned_visit' && (
                 <Card title="When the job starts">
                   <p className="text-sm text-slate-600">

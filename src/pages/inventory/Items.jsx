@@ -61,13 +61,13 @@ export function Items() {
         key: 'name', header: 'Item', sortValue: (i) => i.name,
         cell: (i) => (
           <div className="min-w-0">
-            <p className="max-w-[44ch] truncate text-slate-900">{i.name}</p>
+            <p className="max-w-[36ch] truncate text-slate-900">{i.name}</p>
             <p className="truncate text-xs text-slate-500 lg:hidden">{i.category}</p>
           </div>
         ),
       },
       { key: 'category', header: 'Category', hideBelow: 'xl', sortValue: (i) => i.category, cell: (i) => <span className="text-slate-700">{i.category}</span> },
-      { key: 'unit', header: 'Unit', hideBelow: 'md', cell: (i) => <span className="text-slate-500">{i.unit}</span> },
+      { key: 'unit', header: 'Unit', hideBelow: 'xl', cell: (i) => <span className="text-slate-500">{i.unit}</span> },
       ...(seeCost ? [{ key: 'cost', header: 'Cost (AED)', align: 'right', hideBelow: 'lg', sortValue: (i) => i.cost, cell: (i) => <span className="text-slate-500">{money(i.cost)}</span> }] : []),
       { key: 'price', header: 'Price (AED)', align: 'right', sortValue: (i) => i.price, cell: (i) => money(i.price) },
       ...(seeCost

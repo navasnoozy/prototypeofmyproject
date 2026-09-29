@@ -126,6 +126,15 @@ function OfficeHome() {
                 and follow the deficiency until it is verified. <Link className="font-medium text-slate-900 underline underline-offset-2" to="/service/deficiencies/def_211">DEF-2026-0211</Link> is an impairment: its system is out of service.
               </li>
               <li>
+                Restock: open <Link className="font-medium text-slate-900 underline underline-offset-2" to="/inventory/stock">Stock</Link>, see what is below its minimum, and make a draft order from the suggestions. Send it for approval, approve it as Omar Haddad, send it to the supplier, and receive the goods as Bilal Khan: the balance grows and the movement is in the ledger.
+              </li>
+              <li>
+                Use a part on a job: as Imran Qureshi, open the <Link className="font-medium text-slate-900 underline underline-offset-2" to="/service/jobs/jb_1">visit at Palm Grove</Link> and add three smoke detectors. They come out of his van. Look at his van on <Link className="font-medium text-slate-900 underline underline-offset-2" to="/inventory/stock">Stock</Link>, then top it up from the store.
+              </li>
+              <li>
+                Buy for a project: on <Link className="font-medium text-slate-900 underline underline-offset-2" to="/projects/prj_2?tab=materials">PRJ-2026-002, Materials</Link> one order is late and one arrived in part. Make a new order for the sprinkler package that takes it over its budget, and see who must approve it. Then look at the bills that are due in <Link className="font-medium text-slate-900 underline underline-offset-2" to="/purchases/bills">Purchases</Link>.
+              </li>
+              <li>
                 Follow a quotation from start to end: open <Link className="font-medium text-slate-900 underline underline-offset-2" to="/sales/quotations">Quotations</Link>, take the draft
                 of Nexus Data Centre, send it for approval or to the customer, then use View as to approve it, and record the customer's answer.
               </li>

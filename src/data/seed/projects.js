@@ -1,5 +1,5 @@
 import { addDays } from '../../lib/dates.js';
-import { advanceTotal, certifiedFigures, claimFigures, defaultDocuments, dlpEnd, emptyHandover, lastNet, originalValue, packagesFromQuotation, testsFromPackages } from '../projectRules.js';
+import { advanceTotal, certifiedFigures, claimFigures, dlpEnd, emptyHandover, lastNet, originalValue, packagesFromQuotation, testsFromPackages } from '../projectRules.js';
 
 // Three projects of the sample company, in three different states, and the
 // days people are not available. Dates are relative to today.

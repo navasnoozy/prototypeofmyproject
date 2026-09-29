@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { CheckIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { COST_KINDS, COST_STATE } from '@/data/projectKinds.js';
 import { budgetTotal, costTotals, forecast } from '@/data/projectRules.js';
@@ -16,7 +17,7 @@ import { ProgressBar, Stat } from './parts.jsx';
 
 function CostDrawer({ p, onClose }) {
   const form = useForm(
-    { packageId: p.packages[0]?.id ?? '', kind: 'material', description: '', ref: '', amount: '', state: 'incurred' },
+    { packageId: p.packages[0]?.id ?? '', kind: 'labour', description: '', ref: '', amount: '', state: 'incurred' },
     (v) => ({
       ...(v.description.trim().length >= 3 ? {} : { description: 'Say what the cost is for.' }),
       ...(Number(v.amount) > 0 ? {} : { amount: 'Write the amount.' }),
@@ -33,7 +34,7 @@ function CostDrawer({ p, onClose }) {
       <form onSubmit={save} className="grid grid-cols-1 gap-4">
         <Field label="Package"><Select {...form.bind('packageId')} options={p.packages.map((x) => ({ value: x.id, label: x.title }))} /></Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Kind"><Select {...form.bind('kind')} options={Object.entries(COST_KINDS).map(([value, label]) => ({ value, label }))} /></Field>
+          <Field label="Kind"><Select {...form.bind('kind')} options={Object.entries(COST_KINDS).filter(([value]) => value !== 'material').map(([value, label]) => ({ value, label }))} /></Field>
           <Field label="State"><Select {...form.bind('state')} options={Object.entries(COST_STATE).map(([value, label]) => ({ value, label }))} /></Field>
         </div>
         <Field label="What for" required error={form.error('description')}><TextInput {...form.bind('description')} autoComplete="off" /></Field>
@@ -41,7 +42,7 @@ function CostDrawer({ p, onClose }) {
           <Field label="Reference" hint="Order or bill number."><TextInput {...form.bind('ref')} autoComplete="off" /></Field>
           <Field label="Amount" required error={form.error('amount')}><TextInput {...form.bind('amount')} prefix="AED" inputMode="decimal" /></Field>
         </div>
-        <p className="text-xs text-slate-500">From step 6 the purchase orders and supplier bills of Purchases fill these lines by themselves; until then they are written by hand.</p>
+        <p className="text-xs text-slate-500">Materials are not written here: they come by themselves from the purchase orders of the project and from the stock issued to it (tab Materials).</p>
         <button type="submit" className="hidden" />
       </form>
     </Drawer>
@@ -101,17 +102,21 @@ export function ProjectCosts({ p, manage }) {
                 <span className="w-20 shrink-0 text-xs tabular-nums text-slate-500">{fmtDate(c.on)}</span>
                 <span className="min-w-0 flex-1 basis-56">
                   <span className="block text-sm text-slate-900">{c.description}</span>
-                  <span className="block truncate text-xs text-slate-500">{COST_KINDS[c.kind]}{c.ref ? ` · ${c.ref}` : ''} · {nameOf(c.packageId)}</span>
+                  <span className="block truncate text-xs text-slate-500">
+                    {COST_KINDS[c.kind]}
+                    {c.poId ? <> · <Link className="font-medium underline-offset-2 hover:underline" to={`/purchases/${c.poId}`}>{c.ref}</Link></> : c.movementId ? ' · from stock' : c.ref ? ` · ${c.ref}` : ''}
+                    {' · '}{nameOf(c.packageId)}
+                  </span>
                 </span>
                 <span className="text-sm font-medium tabular-nums text-slate-900">{money(c.amount)}</span>
                 <Badge tone={c.state === 'committed' ? 'orange' : 'green'} dot>{c.state === 'committed' ? 'Ordered' : 'Billed'}</Badge>
-                {editable && c.state === 'committed' && <IconButton icon={CheckIcon} label={`Mark as billed: ${c.description}`} size="xs" onClick={() => markCostBilled(p.id, c.id)} />}
-                {editable && <IconButton icon={Trash2Icon} label={`Remove: ${c.description}`} size="xs" onClick={() => removeCost(p.id, c.id)} />}
+                {editable && !c.derived && c.state === 'committed' && <IconButton icon={CheckIcon} label={`Mark as billed: ${c.description}`} size="xs" onClick={() => markCostBilled(p.id, c.id)} />}
+                {editable && !c.derived && <IconButton icon={Trash2Icon} label={`Remove: ${c.description}`} size="xs" onClick={() => removeCost(p.id, c.id)} />}
               </li>
             ))}
           </ul>
         )}
-        <p className="mt-3 text-xs text-slate-500">Ordered means a purchase order or an agreement exists and the bill has not come. Both count against the budget.</p>
+        <p className="mt-3 text-xs text-slate-500">Ordered means a purchase order or an agreement exists and the bill has not come. Both count against the budget. Lines with an order number come from Purchases and change when the order does; stock issued to the project comes from Inventory.</p>
       </Card>
       {adding && <CostDrawer p={p} onClose={() => setAdding(false)} />}
     </div>

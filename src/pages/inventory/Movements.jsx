@@ -54,13 +54,13 @@ export function Movements() {
         key: 'item', header: 'Item', sortValue: (m) => s.items[m.itemId]?.code ?? '',
         cell: (m) => (
           <div className="min-w-0">
-            <p className="max-w-[36ch] truncate text-slate-900">{s.items[m.itemId]?.name}</p>
-            <p className="text-xs text-slate-500">{s.items[m.itemId]?.code}</p>
+            <p className="max-w-[30ch] truncate text-slate-900">{s.items[m.itemId]?.name}</p>
+            <p className="text-xs text-slate-500">{s.items[m.itemId]?.code}<span className="xl:hidden"> · {MOVEMENT_KINDS[m.kind]}</span></p>
           </div>
         ),
       },
       { key: 'place', header: 'Place', hideBelow: 'md', sortValue: (m) => shortPlace(s.locations[m.locationId]), cell: (m) => <span className="whitespace-nowrap text-slate-700">{shortPlace(s.locations[m.locationId])}</span> },
-      { key: 'kind', header: 'What happened', hideBelow: 'lg', sortValue: (m) => MOVEMENT_KINDS[m.kind], cell: (m) => <Badge tone={MOVEMENT_TONE[m.kind]}>{MOVEMENT_KINDS[m.kind]}</Badge> },
+      { key: 'kind', header: 'What happened', hideBelow: 'xl', sortValue: (m) => MOVEMENT_KINDS[m.kind], cell: (m) => <Badge tone={MOVEMENT_TONE[m.kind]}>{MOVEMENT_KINDS[m.kind]}</Badge> },
       {
         key: 'qty', header: 'Quantity', align: 'right', sortValue: (m) => m.qty,
         cell: (m) => (
@@ -77,9 +77,9 @@ export function Movements() {
           const text = ref.label || m.note;
           if (!text) return <span className="text-slate-400">—</span>;
           return ref.to ? (
-            <Link to={ref.to} onClick={(e) => e.stopPropagation()} className="block max-w-[26ch] truncate text-sm font-medium tabular-nums text-slate-900 underline-offset-2 hover:underline">{text}</Link>
+            <Link to={ref.to} onClick={(e) => e.stopPropagation()} className="block max-w-[22ch] truncate text-sm font-medium tabular-nums text-slate-900 underline-offset-2 hover:underline">{text}</Link>
           ) : (
-            <span className="block max-w-[30ch] truncate text-sm text-slate-600" title={m.note}>{text}</span>
+            <span className="block max-w-[24ch] truncate text-sm text-slate-600" title={m.note}>{text}</span>
           );
         },
       },

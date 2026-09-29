@@ -8,7 +8,12 @@ import { cn } from '@/lib/cn.js';
 import { fmtDate, relDays, todayISO } from '@/lib/dates.js';
 import { clockTime, durationWords, useNow } from '@/lib/useNow.js';
 import { plural } from '@/lib/format.js';
-import { newId } from '@/lib/ids.js';
+import { addJobPart, removeJobPart } from '@/store/inventoryActions.js';
+import { balanceOf } from '@/store/inventorySelectors.js';
+import { orderTitle } from '@/data/purchaseRules.js';
+import { orderView, ordersOfJob } from '@/store/purchaseSelectors.js';
+import { issueLocationOf } from '@/store/stockCore.js';
+import { toast } from '@/store/toast.js';
 import { passRemaining, setCheckResult, updateJob } from '@/store/serviceActions.js';
 import { checklistProgress, deficiencyOfCheck, deviceLabel, unrecordedFails } from '@/store/serviceSelectors.js';
 import { list } from '@/store/selectors.js';
@@ -20,6 +25,7 @@ import { Combobox } from '@/ui/Combobox.jsx';
 import { Select, TextArea, TextInput } from '@/ui/Form.jsx';
 import { Card, DefinitionList } from '@/ui/Page.jsx';
 import { PhotoStrip } from '@/ui/Photos.jsx';
+import { OrderBadge } from '@/pages/purchases/parts.jsx';
 import { SiteTile } from '@/pages/customers/parts.jsx';
 import { mapsUrl, staffName, staffNames, telHref, whoToCall } from './parts.jsx';
 
@@ -214,14 +220,18 @@ export function PartsTimeCard({ j, editable }) {
   const [qty, setQty] = useState('1');
   const [who, setWho] = useState(j.assigneeIds[0] ?? '');
   const [hours, setHours] = useState('1');
-  const items = list(s.items).filter((i) => i.active).map((i) => ({ value: i.id, label: i.name, sub: `${i.code} · per ${i.unit}` }));
+  const from = issueLocationOf(s, j); // the van of the first person on the job with one, else the store
+  const items = list(s.items)
+    .filter((i) => i.active && i.kind === 'material')
+    .map((i) => ({ value: i.id, label: i.name, sub: i.stocked ? `${i.code} · ${balanceOf(s, i.id, from)} in ${s.locations[from]?.name.split(' (')[0]}` : `${i.code} · not kept in stock` }));
   const staff = list(s.staff).filter((p) => ['technician', 'engineer'].includes(p.roleKey));
   const totalHours = j.labour.reduce((sum, r) => sum + r.hours, 0);
 
   const addPart = () => {
     const it = s.items[item];
     if (!it || !(Number(qty) > 0)) return;
-    updateJob(j.id, { parts: [...j.parts, { id: newId('prt'), itemId: it.id, description: it.name, unit: it.unit, qty: Number(qty) }] });
+    const result = addJobPart(j.id, { itemId: it.id, qty: Number(qty) });
+    if (result.short) toast(`${result.name} did not have that many: recorded, and the van needs a count`, { tone: 'error' });
     setItem('');
     setQty('1');
   };
@@ -243,9 +253,12 @@ export function PartsTimeCard({ j, editable }) {
             <ul className="divide-y divide-slate-100">
               {j.parts.map((r) => (
                 <li key={r.id} className="flex items-center gap-2 py-2 text-sm">
-                  <span className="min-w-0 flex-1 truncate text-slate-900">{r.description}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-slate-900">{r.description}</span>
+                    {r.fromId && <span className="block truncate text-xs text-slate-500">From {s.locations[r.fromId]?.name}</span>}
+                  </span>
                   <span className="tabular-nums text-slate-600">{r.qty} {r.unit}</span>
-                  {editable && <IconButton icon={XIcon} label={`Remove ${r.description}`} size="xs" onClick={() => updateJob(j.id, { parts: j.parts.filter((x) => x.id !== r.id) })} />}
+                  {editable && <IconButton icon={XIcon} label={`Remove ${r.description}`} size="xs" onClick={() => removeJobPart(j.id, r.id)} />}
                 </li>
               ))}
             </ul>
@@ -293,7 +306,7 @@ export function PartsTimeCard({ j, editable }) {
           )}
         </div>
       </div>
-      <p className="mt-4 text-xs text-slate-500">Parts will be issued from the technician's van stock in Inventory (step 6) and the time goes to the cost of the job (step 7).</p>
+      <p className="mt-4 text-xs text-slate-500">Parts kept in stock come out of {s.locations[from]?.name ?? 'the store'}, the van of the first technician on the job, and are counted in Inventory. The time goes to the cost of the job (step 7).</p>
     </Card>
   );
 }
@@ -464,5 +477,36 @@ export function OnSiteTimer({ j }) {
       <ClockIcon className="size-3" aria-hidden="true" />
       On site {durationWords(now - Date.parse(j.startedAt))}
     </Badge>
+  );
+}
+
+// ---- parts ordered for this job ------------------------------------------------------------------------------------
+export function JobOrdersCard({ j }) {
+  const s = useStore();
+  const { may } = useSession();
+  const orders = ordersOfJob(s, j.id).map((po) => orderView(s, po)).toSorted((a, b) => b.po.number.localeCompare(a.po.number));
+  const canOrder = may('request_purchase') && !['report_sent', 'cancelled'].includes(j.status);
+  if (orders.length === 0 && !canOrder) return null;
+  return (
+    <Card title="Parts ordered for this job" action={canOrder && <Button size="xs" icon={PlusIcon} to={`/purchases/new?job=${j.id}`}>Order a part</Button>}>
+      {orders.length === 0 ? (
+        <p className="text-sm text-slate-500">Nothing is ordered for this job. A part that is not in the van is ordered here, so its cost is on the job.</p>
+      ) : (
+        <ul className="-my-2 divide-y divide-slate-100">
+          {orders.map((v) => (
+            <li key={v.po.id}>
+              <Link to={`/purchases/${v.po.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5">
+                <span className="w-28 shrink-0 text-sm font-medium tabular-nums text-slate-900">{v.po.number}</span>
+                <span className="min-w-0 flex-1 basis-40">
+                  <span className="block truncate text-sm text-slate-800">{orderTitle(v.po)}</span>
+                  <span className="block truncate text-xs text-slate-500">{v.supplier?.name}{v.po.expectedOn ? ` · expected ${fmtDate(v.po.expectedOn)}` : ''}</span>
+                </span>
+                <OrderBadge v={v} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }

@@ -60,11 +60,11 @@ export function PurchaseOrderList() {
       { key: 'number', header: 'Order', sortValue: (v) => v.po.number, cell: (v) => (
         <div className="min-w-0">
           <p className="whitespace-nowrap font-medium tabular-nums text-slate-900">{v.po.number}</p>
-          <p className="max-w-[26ch] truncate text-xs text-slate-500">{orderTitle(v.po)}</p>
+          <p className="max-w-[26ch] truncate text-xs text-slate-500">{orderTitle(v.po)}<span className="xl:hidden"> · {forWhat(s, v.po)}</span></p>
         </div>
       ) },
       { key: 'supplier', header: 'Supplier', sortValue: (v) => v.supplier?.name ?? '', cell: (v) => <span className="block max-w-[28ch] truncate text-slate-800">{v.supplier?.name}</span> },
-      { key: 'for', header: 'For', hideBelow: 'lg', sortValue: (v) => forWhat(s, v.po), cell: (v) => <ForCell po={v.po} /> },
+      { key: 'for', header: 'For', hideBelow: 'xl', sortValue: (v) => forWhat(s, v.po), cell: (v) => <ForCell po={v.po} /> },
       { key: 'status', header: 'State', cell: (v) => <OrderBadge v={v} /> },
       {
         key: 'expected', header: 'Expected', hideBelow: 'md', sortValue: (v) => v.po.expectedOn || '9999',
@@ -121,6 +121,7 @@ export function PurchaseOrderList() {
       <DataTable
         columns={columns}
         rows={table.rows}
+        rowKey={(v) => v.po.id}
         sort={table.sort}
         onSort={table.toggleSort}
         rowHref={(v) => `/purchases/${v.po.id}`}

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router';
+import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { AREAS } from '@/data/areas.js';
 import { AppShell } from '@/shell/AppShell.jsx';
 import { Guard } from '@/shell/Guard.jsx';
@@ -45,6 +45,12 @@ import { SupplierList } from '@/pages/purchases/SupplierList.jsx';
 // there. Each is replaced by the real pages when its step is done.
 const LATER = AREAS.filter((a) => !['home', 'customers', 'sales', 'service', 'projects', 'schedule', 'purchases', 'inventory'].includes(a.id));
 
+// The catalogue moved from Sales to Inventory (step 6): old links keep working, with their query.
+function CatalogueRedirect() {
+  const { search } = useLocation();
+  return <Navigate to={`/inventory${search}`} replace />;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -69,7 +75,7 @@ export default function App() {
           <Route path="quotations" element={<QuotationList />} />
           <Route path="quotations/new" element={<QuotationNew />} />
           <Route path="quotations/:quotationId" element={<QuotationDetail />} />
-          <Route path="catalogue" element={<Navigate to="/inventory" replace />} />
+          <Route path="catalogue" element={<CatalogueRedirect />} />
           <Route path=":enquiryId" element={<EnquiryDetail />} />
           <Route path=":enquiryId/edit" element={<EnquiryForm />} />
         </Route>

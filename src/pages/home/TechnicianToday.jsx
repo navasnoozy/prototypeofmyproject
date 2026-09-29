@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowRightIcon, HardHatIcon, MapPinIcon, NavigationIcon, PhoneIcon, PlayIcon, PlusIcon, SearchIcon } from 'lucide-react';
+import { ArrowRightIcon, HardHatIcon, MapPinIcon, NavigationIcon, PackageIcon, PhoneIcon, PlayIcon, PlusIcon, SearchIcon } from 'lucide-react';
 import { URGENCY } from '@/data/quotationKinds.js';
 import { JOB_KINDS, WINDOWS } from '@/data/serviceKinds.js';
 import { cn } from '@/lib/cn.js';
 import { addDays, fmtDay, relDays, todayISO } from '@/lib/dates.js';
 import { plural } from '@/lib/format.js';
+import { balanceOf, vanOfPerson, vanShortfalls } from '@/store/inventorySelectors.js';
 import { boardItems } from '@/store/scheduleSelectors.js';
 import { list } from '@/store/selectors.js';
 import { startJob } from '@/store/serviceActions.js';
@@ -14,6 +15,7 @@ import { useStore } from '@/store/store.js';
 import { toast } from '@/store/toast.js';
 import { Badge } from '@/ui/Badge.jsx';
 import { Button } from '@/ui/Button.jsx';
+import { Drawer } from '@/ui/Overlay.jsx';
 import { EmptyState, Page } from '@/ui/Page.jsx';
 import { DeficiencyDrawer } from '@/pages/service/DeficiencyDialogs.jsx';
 import { mapsUrl, telHref, whoToCall } from '@/pages/service/parts.jsx';
@@ -136,11 +138,43 @@ const Section = ({ title, count, children }) => (
   </section>
 );
 
+// The stock in the technician's own van: what is there and what the van usually carries.
+function VanStock({ van, onClose }) {
+  const s = useStore();
+  const rows = list(s.items)
+    .filter((i) => i.stocked && (i.vanPar > 0 || balanceOf(s, i.id, van.id) !== 0))
+    .toSorted((a, b) => a.name.localeCompare(b.name));
+  return (
+    <Drawer open onClose={onClose} title="My van stock" subtitle={van.name}>
+      <ul className="divide-y divide-slate-100">
+        {rows.map((i) => {
+          const have = balanceOf(s, i.id, van.id);
+          const short = i.vanPar > 0 && have < i.vanPar;
+          return (
+            <li key={i.id} className="flex items-center gap-3 py-2.5">
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm text-slate-900">{i.name}</span>
+                <span className="block text-xs text-slate-500">{i.code}{i.vanPar > 0 ? ` · usually ${i.vanPar}` : ''}</span>
+              </span>
+              {short && <Badge tone="orange">Needs {i.vanPar - Math.max(0, have)}</Badge>}
+              <span className={cn('w-10 text-right text-base font-semibold tabular-nums', have < 0 ? 'text-red-700' : 'text-slate-900')}>{have}</span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-4 text-xs text-slate-500">A part you add to a job comes out of this van. The store tops the van up when it is below its usual level.</p>
+    </Drawer>
+  );
+}
+
 export function TechnicianToday() {
   const s = useStore();
   const { user } = useSession();
   const navigate = useNavigate();
   const [recording, setRecording] = useState(false);
+  const [vanOpen, setVanOpen] = useState(false);
+  const van = vanOfPerson(s, user.id);
+  const vanShort = van ? vanShortfalls(s, van.id) : [];
   const today = todayISO();
 
   const mine = list(s.jobs).filter((j) => j.assigneeIds.includes(user.id));
@@ -216,6 +250,25 @@ export function TechnicianToday() {
           </Section>
         )}
 
+        {van && (
+          <Section title="My van">
+            <button
+              type="button"
+              onClick={() => setVanOpen(true)}
+              className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left transition-colors duration-150 hover:bg-slate-50"
+            >
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700"><PackageIcon className="size-5" aria-hidden="true" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-slate-900">{van.name}</span>
+                <span className="block truncate text-xs text-slate-500">
+                  {vanShort.length === 0 ? 'Everything is at its usual level' : `${plural(vanShort.length, 'item')} below the usual level: ${vanShort.slice(0, 3).map((r) => r.item.code).join(', ')}${vanShort.length > 3 ? '…' : ''}`}
+                </span>
+              </span>
+              <ArrowRightIcon className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
+            </button>
+          </Section>
+        )}
+
         <Section title="On the way">
           <div className="grid grid-cols-2 gap-2">
             <Button icon={PlusIcon} onClick={() => setRecording(true)}>Record deficiency</Button>
@@ -228,6 +281,7 @@ export function TechnicianToday() {
 
       </div>
       {recording && <DeficiencyDrawer onClose={() => setRecording(false)} onSaved={(id) => navigate(`/service/deficiencies/${id}`)} />}
+      {vanOpen && van && <VanStock van={van} onClose={() => setVanOpen(false)} />}
     </Page>
   );
 }

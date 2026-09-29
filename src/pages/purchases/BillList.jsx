@@ -60,13 +60,13 @@ export function BillList() {
         cell: (r) => (
           <div className="min-w-0">
             <p className="whitespace-nowrap font-medium text-slate-900">{r.bill.supplierRef}</p>
-            <p className="text-xs tabular-nums text-slate-500">{r.bill.number}</p>
+            <p className="text-xs tabular-nums text-slate-500">{r.bill.number}<span className="xl:hidden"> · {r.po.number}</span></p>
           </div>
         ),
       },
       { key: 'supplier', header: 'Supplier', sortValue: (r) => r.supplier?.name ?? '', cell: (r) => <span className="block max-w-[28ch] truncate text-slate-800">{r.supplier?.name}</span> },
-      { key: 'po', header: 'Order', hideBelow: 'md', sortValue: (r) => r.po.number, cell: (r) => <Link to={`/purchases/${r.po.id}`} onClick={(e) => e.stopPropagation()} className="whitespace-nowrap font-medium tabular-nums underline-offset-2 hover:underline">{r.po.number}</Link> },
-      { key: 'on', header: 'Billed', hideBelow: 'lg', sortValue: (r) => r.bill.on, cell: (r) => <span className="whitespace-nowrap text-slate-600">{fmtDate(r.bill.on)}</span> },
+      { key: 'po', header: 'Order', hideBelow: 'xl', sortValue: (r) => r.po.number, cell: (r) => <Link to={`/purchases/${r.po.id}`} onClick={(e) => e.stopPropagation()} className="whitespace-nowrap font-medium tabular-nums underline-offset-2 hover:underline">{r.po.number}</Link> },
+      { key: 'on', header: 'Billed', hideBelow: 'xl', sortValue: (r) => r.bill.on, cell: (r) => <span className="whitespace-nowrap text-slate-600">{fmtDate(r.bill.on)}</span> },
       {
         key: 'due', header: 'Due', sortValue: (r) => r.bill.dueOn,
         cell: (r) => (

@@ -3,7 +3,7 @@ import {
   advanceTotal, certifiedFigures, claimFigures, currentProgress, defaultDocuments, dlpEnd, emptyHandover, equipmentFromQuotation, lastNet, originalValue,
   packagesFromQuotation, retentionHeld, tagRange, testsFromPackages,
 } from '@/data/projectRules.js';
-import { addDays, addMonths, todayISO } from '@/lib/dates.js';
+import { addDays, todayISO } from '@/lib/dates.js';
 import { createQuotation, importCoverage } from './salesActions.js';
 import { getState, transact } from './store.js';
 

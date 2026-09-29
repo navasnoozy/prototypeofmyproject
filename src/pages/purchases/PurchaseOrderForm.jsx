@@ -70,7 +70,7 @@ function Body({ existing }) {
       : {
           supplierId: s.suppliers[params.get('supplier')] ? params.get('supplier') : '',
           purpose: presetProject ? 'project' : presetJob ? 'job' : 'stock',
-          projectId: presetProject, jobId: presetJob, deliverTo: presetProject || presetJob ? 'site' : STORE_ID,
+          projectId: presetProject, jobId: presetJob, deliverTo: presetProject ? 'site' : STORE_ID,
           expectedOn: '', title: '', supplierRef: '', notes: '', lines: [],
         },
     (v) => ({
@@ -88,7 +88,7 @@ function Body({ existing }) {
   const projects = useMemo(() => projectOptions(s), [s]);
   const jobs = useMemo(() => jobOptions(s), [s]);
   const places = locationList(s).map((l) => ({ value: l.id, label: l.name }));
-  const deliverOptions = values.purpose === 'stock' ? places : [{ value: 'site', label: 'Straight to the site' }, { value: STORE_ID, label: 'Main store (held for it)' }];
+  const deliverOptions = values.purpose === 'stock' ? places : [{ value: STORE_ID, label: 'Main store (held for it)' }, { value: 'site', label: 'Straight to the site' }];
 
   // The order as it would be saved, to show the totals and the approval it needs.
   const draft = useMemo(
@@ -136,7 +136,7 @@ function Body({ existing }) {
 
   const setPurpose = (purpose) => {
     form.set('purpose', purpose);
-    form.set('deliverTo', purpose === 'stock' ? STORE_ID : 'site');
+    form.set('deliverTo', purpose === 'project' ? 'site' : STORE_ID);
     if (purpose !== 'project') setLines(values.lines.map((l) => ({ ...l, packageId: '' })));
   };
   const chooseProject = (id) => {

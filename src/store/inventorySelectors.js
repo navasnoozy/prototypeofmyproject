@@ -108,13 +108,15 @@ export const stockValue = (rows) => round2(rows.reduce((n, r) => n + r.value, 0)
 // ---- the ledger -----------------------------------------------------------------------------------------------------
 export const movementRows = (s) => list(s.movements).toSorted((a, b) => b.on.localeCompare(a.on) || b.id.localeCompare(a.id, undefined, { numeric: true }));
 
+const shortName = (l) => (l?.kind === 'store' ? 'Main store' : l?.name.split(' (')[0] ?? '?');
+
 /** The document a movement belongs to: a label and, when there is one to open, where. */
 export function movementRef(s, m) {
   const r = m.ref ?? {};
   if (r.kind === 'grn') return { label: r.number, to: `/purchases/${r.poId}` };
   if (r.kind === 'job') return { label: r.number, to: `/service/jobs/${r.id}` };
   if (r.kind === 'project') return { label: r.number, to: `/projects/${r.id}?tab=materials` };
-  if (r.kind === 'transfer') return { label: `${s.locations[r.from]?.name ?? '?'} to ${s.locations[r.to]?.name ?? '?'}`, to: '' };
+  if (r.kind === 'transfer') return { label: `${shortName(s.locations[r.from])} to ${shortName(s.locations[r.to])}`, to: '' };
   return { label: '', to: '' };
 }
 

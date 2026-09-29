@@ -137,7 +137,7 @@ function Body({ po }) {
             </p>
           )}
 
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
             <div className="min-w-0 space-y-5">
               <LinesCard v={v} placed={placed} />
               {placed && <DeliveriesCard v={v} canReceive={canReceive} onReceive={() => setDialog('receive')} />}
@@ -399,7 +399,9 @@ function ApprovalCard({ po, needs, canDecide, onApprove, onRefuse }) {
           </>
         ) : (
           <p className="text-sm text-slate-600">
-            {needs.reasons.length > 0 ? `Within the maker's own authority, so no one else had to approve. (${needs.reasons[0]}.)` : 'No approval was needed: the value is within the limit of the purchase officer.'}
+            {needs.reasons.length > 0
+              ? `Within the maker's own authority, so no one else ${po.status === 'draft' ? 'has' : 'had'} to approve. (${needs.reasons[0]}.)`
+              : `No approval ${po.status === 'draft' ? 'is' : 'was'} needed: the value is within the limit of the purchase officer.`}
           </p>
         )}
       </>

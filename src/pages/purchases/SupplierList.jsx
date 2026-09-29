@@ -58,14 +58,14 @@ export function SupplierList() {
           </div>
         ),
       },
-      { key: 'categories', header: 'Supplies', hideBelow: 'lg', cell: (r) => <span className="block max-w-[26ch] truncate text-slate-600">{r.supplier.categories.join(', ') || '—'}</span> },
+      { key: 'categories', header: 'Supplies', hideBelow: 'xl', cell: (r) => <span className="block max-w-[26ch] truncate text-slate-600">{r.supplier.categories.join(', ') || '—'}</span> },
       { key: 'terms', header: 'Terms', hideBelow: 'md', sortValue: (r) => Number(r.supplier.terms), cell: (r) => <span className="whitespace-nowrap text-slate-700">{Number(r.supplier.terms) === 0 ? 'Cash' : `Net ${r.supplier.terms}`}</span> },
       { key: 'open', header: 'Open orders', align: 'right', hideBelow: 'md', sortValue: (r) => r.stats.open, cell: (r) => r.stats.open || <span className="text-slate-400">—</span> },
       {
         key: 'unpaid', header: 'We owe (AED)', align: 'right', sortValue: (r) => r.stats.unpaid,
         cell: (r) => (r.stats.unpaid > 0 ? <span className={r.stats.overdue > 0 ? 'font-medium text-red-700' : ''}>{money(r.stats.unpaid)}</span> : <span className="text-slate-400">—</span>),
       },
-      { key: 'state', header: 'State', hideBelow: 'lg', cell: (r) => (r.supplier.active ? <Badge tone="green" dot>In use</Badge> : <Badge>Not used</Badge>) },
+      { key: 'state', header: 'State', hideBelow: 'xl', cell: (r) => (r.supplier.active ? <Badge tone="green" dot>In use</Badge> : <Badge>Not used</Badge>) },
     ],
     [],
   );
