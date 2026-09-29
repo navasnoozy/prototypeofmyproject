@@ -13,7 +13,13 @@ import { FieldContext } from './FieldContext.js';
 // highlighted, and a footer with the keys. Long text ends in "..." and never
 // overlaps its neighbour.
 //
-// options: [{ value, label, sub, badge: { tone, text }, avatar: 'Name', shape, icon }]
+// options: [{ value, label, sub, badge: { tone, text }, avatar: 'Name', shape, icon: LucideIcon }]
+const IconTile = ({ icon: Icon, size = 'md' }) => (
+  <span className={cn('grid shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-600', size === 'sm' ? 'size-6' : 'size-8')}>
+    <Icon className={size === 'sm' ? 'size-3.5' : 'size-4'} aria-hidden="true" />
+  </span>
+);
+
 export function Combobox({
   options, value, onChange, onBlur, placeholder = 'Choose…', searchPlaceholder = 'Search…',
   noun = 'options', createLabel, onCreate, clearable = false, disabled = false, className,
@@ -98,6 +104,7 @@ export function Combobox({
           {selected ? (
             <>
               {selected.avatar && <Avatar name={selected.avatar} shape={selected.shape} size="xs" />}
+              {selected.icon && <IconTile icon={selected.icon} size="sm" />}
               <span className="min-w-0 flex-1 truncate">{selected.label}</span>
               {selected.sub && <span className="hidden max-w-[40%] truncate text-xs text-slate-500 sm:block">{selected.sub}</span>}
             </>
@@ -159,6 +166,7 @@ export function Combobox({
                 className={cn('flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2', isActive && 'bg-slate-100')}
               >
                 {row.avatar && <Avatar name={row.avatar} shape={row.shape} size="sm" />}
+                {row.icon && <IconTile icon={row.icon} />}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-slate-900">
                     {before}<mark className="rounded-[2px] bg-yellow-200 text-inherit">{match}</mark>{after}

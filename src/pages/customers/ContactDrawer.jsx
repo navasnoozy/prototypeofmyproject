@@ -22,13 +22,13 @@ const validate = (v) => {
 
 // Adds or edits a contact. `contact` is the person being edited (or null for
 // a new one); `customerId` presets the customer when the drawer is opened from
-// a customer or a site.
-export function ContactDrawer({ open, onClose, contact, customerId }) {
+// a customer or a site (then the site is ticked).
+export function ContactDrawer({ open, onClose, contact, customerId, siteId }) {
   if (!open) return null;
-  return <Body key={contact?.id ?? 'new'} onClose={onClose} contact={contact} customerId={customerId} />;
+  return <Body key={contact?.id ?? 'new'} onClose={onClose} contact={contact} customerId={customerId} siteId={siteId} />;
 }
 
-function Body({ onClose, contact, customerId }) {
+function Body({ onClose, contact, customerId, siteId }) {
   const s = useStore();
   const form = useForm(
     {
@@ -38,7 +38,7 @@ function Body({ onClose, contact, customerId }) {
       role: contact?.role ?? 'decision',
       phone: contact?.phone ?? '',
       email: contact?.email ?? '',
-      siteIds: contact?.siteIds ?? [],
+      siteIds: contact?.siteIds ?? (siteId ? [siteId] : []),
       primary: contact?.primary ?? false,
     },
     validate,
