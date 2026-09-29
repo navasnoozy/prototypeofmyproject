@@ -60,6 +60,7 @@ export const resetDemo = () => commit(fresh(state.session));
 /**
  * Runs `fn` with a small transaction object and commits the result once.
  *   tx.get(table, id)              a row
+ *   tx.all(table)                  every row of a table, as a list
  *   tx.put(table, row)             insert or replace
  *   tx.patch(table, id, changes)   merge into a row
  *   tx.remove(table, id)           delete a row
@@ -71,6 +72,7 @@ export function transact(fn) {
   const tx = {
     id: newId,
     get: (table, id) => draft[table][id],
+    all: (table) => Object.values(draft[table]),
     put(table, row) {
       draft[table] = { ...draft[table], [row.id]: row };
       return row;
