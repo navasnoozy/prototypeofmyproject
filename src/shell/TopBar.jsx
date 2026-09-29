@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { SettingsIcon } from 'lucide-react';
+import { SettingsIcon, SmartphoneIcon } from 'lucide-react';
+import { EMBEDDED } from '@/lib/embed.js';
 import { cn } from '@/lib/cn.js';
 import { IconButton } from '@/ui/Button.jsx';
 import { AccountMenu } from './AccountMenu.jsx';
 import { Bell } from './Bell.jsx';
 import { Mark } from './Mark.jsx';
 import { Search } from './Search.jsx';
+import { SyncChip } from './SyncChip.jsx';
 import { ViewAs } from './ViewAs.jsx';
 
 // The brand capsule and the top bar capsule (record 37). The page title is not
 // here: it lives in the content header. On a phone the search takes the whole
 // bar while it is open.
-export function TopBar() {
+export function TopBar({ phoneOpen = false, onPhone }) {
   const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
   return (
@@ -28,6 +30,21 @@ export function TopBar() {
         <Search onOpenChange={setSearching} />
         <div className="flex-1" />
         <div className={cn('flex items-center gap-1', searching && 'max-md:hidden')}>
+          <SyncChip />
+          {!EMBEDDED && (
+            <button
+              type="button"
+              aria-pressed={phoneOpen}
+              onClick={onPhone}
+              className={cn(
+                'hidden h-9 items-center gap-2 whitespace-nowrap rounded-full border border-amber-200 px-3 text-sm text-amber-950 transition-colors duration-150 hover:bg-amber-100 md:inline-flex',
+                phoneOpen ? 'bg-amber-100' : 'bg-amber-50',
+              )}
+            >
+              <SmartphoneIcon className="size-4 text-amber-700" aria-hidden="true" />
+              Phone view
+            </button>
+          )}
           <ViewAs />
           <Bell />
           <IconButton

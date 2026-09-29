@@ -3,53 +3,72 @@ import { createPortal } from 'react-dom';
 import { CheckIcon } from 'lucide-react';
 import { cn } from '@/lib/cn.js';
 
+// The layers that have a focus of their own (menus, dropdowns, the bell, the
+// search results) register here while they are open. A hover popup is
+// "passive": it never closes them, and it stays away while one is open.
+const openLayers = new Set();
+export const hasOpenLayer = () => openLayers.size > 0;
+
 // A layer that floats next to an anchor (menus, dropdowns, search results).
 // It is drawn in the page's body so no scrolling panel can clip it, flips
 // above the anchor when there is no room below, closes with Escape or a click
 // outside, and follows the anchor when the page scrolls or resizes.
+//   edgeRef   for side="right": the element whose right edge the layer sits
+//             against (the sidebar capsule), while the anchor sets the height
+//   passive   a hover popup: it does not close other layers when it opens
+//   bare      draws no card of its own, so the caller can add an invisible
+//             bridge between the anchor and the card
 export function Floating({
-  anchorRef, open, onClose, side = 'bottom', align = 'start', matchWidth = false, className, children, role,
+  anchorRef, edgeRef, open, onClose, side = 'bottom', align = 'start', matchWidth = false,
+  passive = false, bare = false, gap, className, children, role, ...rest
 }) {
   const ref = useRef(null);
   const id = useId();
   const [pos, setPos] = useState(null);
 
-  // Only one floating layer is open at a time: opening this one closes the
-  // others (a menu, the bell, the search results).
+  // Only one layer with a focus of its own is open at a time: opening one
+  // closes the others (a menu, the bell, the search results, a hover popup).
   useEffect(() => {
     if (!open) return undefined;
-    window.dispatchEvent(new CustomEvent('floating-open', { detail: id }));
+    if (!passive) {
+      openLayers.add(id);
+      window.dispatchEvent(new CustomEvent('floating-open', { detail: id }));
+    }
     const onOther = (e) => {
       if (e.detail !== id) onClose();
     };
     window.addEventListener('floating-open', onOther);
-    return () => window.removeEventListener('floating-open', onOther);
-  }, [open, id, onClose]);
+    return () => {
+      openLayers.delete(id);
+      window.removeEventListener('floating-open', onOther);
+    };
+  }, [open, id, onClose, passive]);
 
   const place = useCallback(() => {
     const anchor = anchorRef.current?.getBoundingClientRect();
     const el = ref.current;
     if (!anchor || !el) return;
+    const edge = (edgeRef?.current ?? anchorRef.current).getBoundingClientRect();
     const w = el.offsetWidth;
     const h = el.offsetHeight;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const gap = 6;
+    const g = gap ?? (side === 'right' ? 10 : 6);
     let left;
     let top;
     if (side === 'right') {
-      left = anchor.right + gap + 4;
+      left = edge.right + g;
       top = Math.min(anchor.top, vh - h - 8);
     } else {
       left = align === 'end' ? anchor.right - w : anchor.left;
-      top = anchor.bottom + gap;
-      if (top + h > vh - 8 && anchor.top - h - gap > 8) top = anchor.top - h - gap;
+      top = anchor.bottom + g;
+      if (top + h > vh - 8 && anchor.top - h - g > 8) top = anchor.top - h - g;
     }
     left = Math.max(8, Math.min(left, vw - w - 8));
     top = Math.max(8, top);
     const width = matchWidth ? anchor.width : undefined;
     setPos((p) => (p && p.left === left && p.top === top && p.width === width ? p : { left, top, width }));
-  }, [anchorRef, side, align, matchWidth]);
+  }, [anchorRef, edgeRef, side, align, matchWidth, gap]);
 
   // Place before paint, and again after every render (content may change size).
   useLayoutEffect(() => {
@@ -89,7 +108,8 @@ export function Floating({
         position: 'fixed', left: pos?.left ?? -9999, top: pos?.top ?? -9999, width: pos?.width, zIndex: 60,
         visibility: pos ? 'visible' : 'hidden',
       }}
-      className={cn('animate-pop-in rounded-2xl bg-white shadow-pop', className)}
+      className={bare ? className : cn('animate-pop-in rounded-2xl bg-white shadow-pop', className)}
+      {...rest}
     >
       {children}
     </div>,

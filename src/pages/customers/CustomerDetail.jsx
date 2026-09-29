@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { PauseIcon, PencilIcon, PlayIcon, PlusIcon, Trash2Icon, UserPlusIcon } from 'lucide-react';
-import { customerContacts, customerSites, list, paidSites, siteSummary } from '@/store/selectors.js';
+import { InboxIcon, PauseIcon, PencilIcon, PlayIcon, PlusIcon, Trash2Icon, UserPlusIcon } from 'lucide-react';
+import { effectiveStatus, customerEnquiries, customerQuotations, quotationLabel, quoteTotals } from '@/store/salesSelectors.js';
+import { activityFor, customerContacts, customerSites, paidSites, siteSummary } from '@/store/selectors.js';
 import { deleteCustomer, setCustomerStatus } from '@/store/actions.js';
 import { useSession } from '@/store/session.js';
 import { useStore } from '@/store/store.js';
 import { toast } from '@/store/toast.js';
 import { aed, plural } from '@/lib/format.js';
-import { fmtDate, relTime } from '@/lib/dates.js';
+import { todayISO } from '@/lib/dates.js';
+import { fmtDate } from '@/lib/dates.js';
 import { useParam } from '@/lib/useParam.js';
 import { Avatar, Badge, Status } from '@/ui/Badge.jsx';
 import { Button } from '@/ui/Button.jsx';
@@ -16,6 +18,8 @@ import { Field, TextArea } from '@/ui/Form.jsx';
 import { Card, DefinitionList, EmptyState, Page, Tabs } from '@/ui/Page.jsx';
 import { DataTable } from '@/ui/Table.jsx';
 import { ContactDrawer } from './ContactDrawer.jsx';
+import { KindTag } from '@/pages/sales/parts.jsx';
+import { ActivityList } from '@/ui/Activity.jsx';
 import { ContactRows, HealthBadge, SiteTile, staffName } from './parts.jsx';
 
 const ABOUT = {
@@ -50,7 +54,7 @@ export function CustomerDetail() {
 function Body({ customer }) {
   const s = useStore();
   const navigate = useNavigate();
-  const { canEdit, roleKey } = useSession();
+  const { canEdit, access, roleKey } = useSession();
   const [tab, setTab] = useParam('tab', 'overview');
   const [contactDrawer, setContactDrawer] = useState({ open: false, contact: null });
   const [holdOpen, setHoldOpen] = useState(false);
@@ -60,9 +64,9 @@ function Body({ customer }) {
   const sites = customerSites(s, customer.id);
   const paying = paidSites(s, customer.id);
   const contacts = customerContacts(s, customer.id);
-  const activity = list(s.activity)
-    .filter((a) => a.entity === 'customer' && a.entityId === customer.id)
-    .toSorted((a, b) => b.at.localeCompare(a.at));
+  const activity = activityFor(s, 'customer', customer.id);
+  const enquiries = customerEnquiries(s, customer.id);
+  const quotes = customerQuotations(s, customer.id);
 
   const editable = canEdit('customers');
   const canRelease = ['owner', 'manager'].includes(roleKey);
@@ -73,19 +77,25 @@ function Body({ customer }) {
     ? [
         { label: 'Edit customer', icon: PencilIcon, onClick: () => navigate(`/customers/${customer.id}/edit`) },
         { label: 'Add contact', icon: UserPlusIcon, onClick: () => setContactDrawer({ open: true, contact: null }) },
+        canEdit('sales') && { label: 'New enquiry', icon: InboxIcon, onClick: () => navigate(`/sales/new?customer=${customer.id}`) },
         { separator: true },
         onHold
           ? { label: 'Take off hold', icon: PlayIcon, onClick: () => { setCustomerStatus(customer.id, 'active'); toast('Customer taken off hold'); }, disabled: !canRelease, sub: canRelease ? undefined : 'Owner or manager only' }
           : { label: 'Put on hold', icon: PauseIcon, onClick: () => setHoldOpen(true) },
         { label: 'Delete customer', icon: Trash2Icon, tone: 'danger', onClick: () => setConfirmDelete(true), disabled: !canDelete, sub: canDelete ? undefined : 'It has sites' },
-      ]
+      ].filter(Boolean)
     : undefined;
 
-  // The one main step follows the life cycle: no site yet, add one; later the
-  // next step is a quotation (Sales, step 2).
-  const cta = editable && (
-    <Button variant="primary" icon={PlusIcon} to={`/customers/sites/new?customer=${customer.id}`}>Add site</Button>
-  );
+  // The one main step follows the life cycle: a customer without a site starts
+  // with a site; after that the next step is a quotation.
+  const hasSite = sites.length + paying.length > 0;
+  const cta =
+    editable &&
+    (hasSite && canEdit('sales') ? (
+      <Button variant="primary" icon={PlusIcon} to={`/sales/quotations/new?customer=${customer.id}`}>New quotation</Button>
+    ) : (
+      <Button variant="primary" icon={PlusIcon} to={`/customers/sites/new?customer=${customer.id}`}>Add site</Button>
+    ));
 
   return (
     <Page
@@ -104,6 +114,7 @@ function Body({ customer }) {
             { value: 'overview', label: 'Overview' },
             { value: 'sites', label: 'Sites', count: sites.length + paying.length },
             { value: 'contacts', label: 'Contacts', count: contacts.length },
+            ...(access('sales') ? [{ value: 'sales', label: 'Sales', count: enquiries.length + quotes.length }] : []),
           ]}
         />
       }
@@ -121,7 +132,7 @@ function Body({ customer }) {
       )}
 
       {tab === 'overview' && (
-        <div className="grid gap-5 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
           <div className="space-y-5 lg:col-span-2">
             <Card title="Details" action={editable && <Button variant="ghost" size="xs" icon={PencilIcon} to={`/customers/${customer.id}/edit`}>Edit</Button>}>
               <DefinitionList
@@ -188,23 +199,7 @@ function Body({ customer }) {
                 </button>
               )}
             </Card>
-            <Card title="Recent activity">
-              {activity.length === 0 ? (
-                <p className="text-sm text-slate-500">Nothing yet.</p>
-              ) : (
-                <ol className="space-y-3">
-                  {activity.slice(0, 6).map((a) => (
-                    <li key={a.id} className="flex gap-3">
-                      <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-slate-300" aria-hidden="true" />
-                      <div className="min-w-0">
-                        <p className="text-sm text-slate-800">{a.text}</p>
-                        <p className="text-xs text-slate-500">{staffName(s, a.by)} · {relTime(a.at)}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </Card>
+            <Card title="Recent activity"><ActivityList entries={activity} /></Card>
           </div>
         </div>
       )}
@@ -221,6 +216,8 @@ function Body({ customer }) {
           )}
         </div>
       )}
+
+      {tab === 'sales' && <SalesTab s={s} enquiries={enquiries} quotes={quotes} canSell={canEdit('sales')} customer={customer} />}
 
       {tab === 'contacts' && (
         <ContactRows
@@ -341,5 +338,61 @@ function SitesTable({ s, sites, empty, showOwner }) {
         </div>
       )}
     />
+  );
+}
+
+function SalesTab({ s, enquiries, quotes, canSell, customer }) {
+  const today = todayISO();
+  const newest = (a, b) => b.localeCompare(a);
+  return (
+    <div className="space-y-8">
+      <section>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-slate-900">Quotations</h2>
+          {canSell && <Button size="xs" icon={PlusIcon} to={`/sales/quotations/new?customer=${customer.id}`}>New quotation</Button>}
+        </div>
+        {quotes.length === 0 ? (
+          <p className="text-sm text-slate-500">No quotation for this customer yet.</p>
+        ) : (
+          <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200">
+            {quotes.toSorted((a, b) => newest(a.createdOn, b.createdOn)).map((q) => (
+              <li key={q.id}>
+                <Link to={`/sales/quotations/${q.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-slate-900">{quotationLabel(q)} · {q.title}</span>
+                    <span className="block truncate text-xs text-slate-500"><KindTag kind={q.kind} className="text-xs" /> · {s.sites[q.siteId]?.name ?? 'No site'} · {fmtDate(q.createdOn)}</span>
+                  </span>
+                  <span className="hidden text-sm tabular-nums text-slate-700 sm:block">{aed(quoteTotals(q, s.settings.vatRate).total)}</span>
+                  <Status kind="quotation" value={effectiveStatus(q, today)} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <section>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-slate-900">Enquiries</h2>
+          {canSell && <Button size="xs" icon={PlusIcon} to={`/sales/new?customer=${customer.id}`}>New enquiry</Button>}
+        </div>
+        {enquiries.length === 0 ? (
+          <p className="text-sm text-slate-500">No enquiry from this customer yet.</p>
+        ) : (
+          <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200">
+            {enquiries.toSorted((a, b) => newest(a.receivedOn, b.receivedOn)).map((e) => (
+              <li key={e.id}>
+                <Link to={`/sales/${e.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-slate-900">{e.number} · {e.title}</span>
+                    <span className="block truncate text-xs text-slate-500"><KindTag kind={e.kind} className="text-xs" /> · came in {fmtDate(e.receivedOn)}</span>
+                  </span>
+                  <Status kind="enquiry" value={e.status} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
   );
 }

@@ -25,7 +25,7 @@ const P = (id, name, roleKey, title, phone, extra = {}) => ({
 export const STAFF = [
   P('staff_layla', 'Layla Nasser', 'owner', 'Managing director', '+971 50 555 0101'),
   P('staff_omar', 'Omar Haddad', 'manager', 'Operations manager', '+971 50 555 0102'),
-  P('staff_sara', 'Sara Malik', 'sales', 'Sales executive', '+971 50 555 0103'),
+  P('staff_sara', 'Sara Malik', 'sales', 'Sales executive and estimator', '+971 50 555 0103'),
   P('staff_hassan', 'Hassan Iqbal', 'coordinator', 'Service coordinator', '+971 50 555 0104'),
   P('staff_rashid', 'Rashid Ali', 'technician', 'Senior technician', '+971 50 555 0105', { van: 'Van 1 (Toyota Hiace)' }),
   P('staff_imran', 'Imran Qureshi', 'technician', 'Fire alarm technician', '+971 50 555 0106', { van: 'Van 2 (Nissan Urvan)' }),

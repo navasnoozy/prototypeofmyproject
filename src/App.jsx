@@ -13,10 +13,26 @@ import { CustomerList } from '@/pages/customers/CustomerList.jsx';
 import { SiteDetail } from '@/pages/customers/SiteDetail.jsx';
 import { SiteForm } from '@/pages/customers/SiteForm.jsx';
 import { SiteList } from '@/pages/customers/SiteList.jsx';
+import { Catalogue } from '@/pages/sales/Catalogue.jsx';
+import { EnquiryDetail } from '@/pages/sales/EnquiryDetail.jsx';
+import { EnquiryForm } from '@/pages/sales/EnquiryForm.jsx';
+import { EnquiryList } from '@/pages/sales/EnquiryList.jsx';
+import { QuotationDetail } from '@/pages/sales/QuotationDetail.jsx';
+import { QuotationList } from '@/pages/sales/QuotationList.jsx';
+import { QuotationNew } from '@/pages/sales/QuotationNew.jsx';
+import { Compliance } from '@/pages/service/Compliance.jsx';
+import { ContractDetail } from '@/pages/service/ContractDetail.jsx';
+import { ContractList } from '@/pages/service/ContractList.jsx';
+import { DeficiencyDetail } from '@/pages/service/DeficiencyDetail.jsx';
+import { DeficiencyList } from '@/pages/service/DeficiencyList.jsx';
+import { EquipmentRegister } from '@/pages/service/EquipmentRegister.jsx';
+import { JobDetail } from '@/pages/service/JobDetail.jsx';
+import { JobForm } from '@/pages/service/JobForm.jsx';
+import { JobList } from '@/pages/service/JobList.jsx';
 
 // Areas that are built in a later step show a page that explains what will be
 // there. Each is replaced by the real pages when its step is done.
-const LATER = AREAS.filter((a) => !['home', 'customers'].includes(a.id));
+const LATER = AREAS.filter((a) => !['home', 'customers', 'sales', 'service'].includes(a.id));
 
 export default function App() {
   return (
@@ -34,6 +50,29 @@ export default function App() {
           <Route path="contacts" element={<ContactList />} />
           <Route path=":customerId" element={<CustomerDetail />} />
           <Route path=":customerId/edit" element={<CustomerForm />} />
+        </Route>
+
+        <Route path="sales" element={<Guard area="sales" />}>
+          <Route index element={<EnquiryList />} />
+          <Route path="new" element={<EnquiryForm />} />
+          <Route path="quotations" element={<QuotationList />} />
+          <Route path="quotations/new" element={<QuotationNew />} />
+          <Route path="quotations/:quotationId" element={<QuotationDetail />} />
+          <Route path="catalogue" element={<Catalogue />} />
+          <Route path=":enquiryId" element={<EnquiryDetail />} />
+          <Route path=":enquiryId/edit" element={<EnquiryForm />} />
+        </Route>
+
+        <Route path="service" element={<Guard area="service" />}>
+          <Route index element={<ContractList />} />
+          <Route path="jobs" element={<JobList />} />
+          <Route path="jobs/new" element={<JobForm />} />
+          <Route path="jobs/:jobId" element={<JobDetail />} />
+          <Route path="deficiencies" element={<DeficiencyList />} />
+          <Route path="deficiencies/:deficiencyId" element={<DeficiencyDetail />} />
+          <Route path="equipment" element={<EquipmentRegister />} />
+          <Route path="compliance" element={<Compliance />} />
+          <Route path=":contractId" element={<ContractDetail />} />
         </Route>
 
         {LATER.map((a) => (

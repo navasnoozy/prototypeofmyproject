@@ -1,3 +1,4 @@
+import { CD_STATUS, CONTRACT_STATUS, DEFICIENCY_STATUS, SEVERITY } from '@/data/serviceKinds.js';
 import { cn } from '@/lib/cn.js';
 import { initials } from '@/lib/format.js';
 
@@ -54,6 +55,46 @@ export const STATUS = {
     in_service: ['green', 'In service'],
     impaired: ['red', 'Out of service (impaired)'],
   },
+  enquiry: {
+    new: ['blue', 'New'],
+    survey: ['violet', 'Site survey'],
+    estimating: ['orange', 'Estimating'],
+    quoted: ['blue', 'Quoted'],
+    won: ['green', 'Won'],
+    lost: ['neutral', 'Lost'],
+  },
+  quotation: {
+    draft: ['neutral', 'Draft'],
+    waiting_approval: ['orange', 'Waiting approval'],
+    approved: ['violet', 'Approved'],
+    sent: ['blue', 'Sent'],
+    accepted: ['green', 'Accepted'],
+    rejected: ['red', 'Rejected'],
+    expired: ['neutral', 'Expired'],
+    superseded: ['neutral', 'Replaced'],
+  },
+  job: {
+    upcoming: ['neutral', 'Upcoming'],
+    unplanned: ['orange', 'Needs planning'],
+    planned: ['blue', 'Planned'],
+    in_progress: ['violet', 'In progress'],
+    completed: ['green', 'Completed'],
+    report_sent: ['green', 'Report sent'],
+    cancelled: ['neutral', 'Cancelled'],
+  },
+  visit: {
+    done: ['green', 'Done'],
+    missed: ['red', 'Missed'],
+    cancelled: ['neutral', 'Cancelled'],
+    upcoming: ['neutral', 'Upcoming'],
+    unplanned: ['orange', 'Needs planning'],
+    planned: ['blue', 'Planned'],
+    in_progress: ['violet', 'In progress'],
+  },
+  contract: CONTRACT_STATUS,
+  deficiency: DEFICIENCY_STATUS,
+  cd: CD_STATUS,
+  severity: Object.fromEntries(Object.entries(SEVERITY).map(([key, v]) => [key, [v.tone, v.label]])),
 };
 
 export function Status({ kind, value, dot = true, className }) {

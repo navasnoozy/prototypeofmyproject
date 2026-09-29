@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router';
 import { BanIcon, BoxIcon, PencilIcon, PlusIcon, PowerIcon, Trash2Icon } from 'lucide-react';
 import { SYSTEM_TYPES, SYSTEM_TYPE_OPTIONS, deviceTypeOptions } from '@/data/catalog.js';
 import { deleteDevice, deleteSystem, saveDevice, saveSystem, setSystemStatus } from '@/store/actions.js';
 import { deviceTypeLabel, devicesBySystem, summariseDevices, systemsBySite } from '@/store/selectors.js';
+import { openDeficiencies, openDeficienciesByDevice } from '@/store/serviceSelectors.js';
 import { useStore } from '@/store/store.js';
 import { toast } from '@/store/toast.js';
 import { todayISO } from '@/lib/dates.js';
@@ -109,6 +111,8 @@ function SystemCard({ system, editable, onAddDevice, onOpenDevice, onEditSystem 
   const sum = summariseDevices(devices);
   const [confirm, setConfirm] = useState(false);
   const impaired = system.status === 'impaired';
+  const impairment = impaired ? openDeficiencies(s).find((d) => d.systemId === system.id && d.severity === 'impairment') : null;
+  const flags = openDeficienciesByDevice(s);
 
   const columns = [
     { key: 'tag', header: 'Tag', cell: (d) => <span className="whitespace-nowrap tabular-nums text-slate-900">{d.tag}</span> },
@@ -119,6 +123,7 @@ function SystemCard({ system, editable, onAddDevice, onOpenDevice, onEditSystem 
           <p className="truncate text-slate-900">
             {deviceTypeLabel(system.type, d.type)}
             {d.qty > 1 && <span className="ml-1.5 rounded-full bg-slate-100 px-1.5 text-xs font-medium tabular-nums text-slate-600">× {d.qty}</span>}
+            {flags[d.id] && <Badge tone="orange" dot className="ml-2">{flags[d.id].length === 1 ? flags[d.id][0].number : `${flags[d.id].length} deficiencies`}</Badge>}
           </p>
           <p className="truncate text-xs text-slate-500 lg:hidden">{d.location}</p>
         </div>
@@ -158,7 +163,7 @@ function SystemCard({ system, editable, onAddDevice, onOpenDevice, onEditSystem 
                 { label: 'Edit system', icon: PencilIcon, onClick: onEditSystem },
                 impaired
                   ? { label: 'Put back in service', icon: PowerIcon, onClick: () => { setSystemStatus(system.id, 'in_service'); toast('System back in service'); } }
-                  : { label: 'Mark out of service (impaired)', icon: BanIcon, onClick: () => { setSystemStatus(system.id, 'impaired'); toast('System marked out of service', { tone: 'error' }); } },
+                  : { label: 'Mark out of service (impaired)', icon: BanIcon, onClick: () => { setSystemStatus(system.id, 'impaired'); toast('System marked out of service and recorded as an impairment', { tone: 'error' }); } },
                 { separator: true },
                 { label: 'Remove system', icon: Trash2Icon, tone: 'danger', onClick: () => setConfirm(true) },
               ]}
@@ -168,8 +173,8 @@ function SystemCard({ system, editable, onAddDevice, onOpenDevice, onEditSystem 
       </header>
       {impaired && (
         <p className="mx-5 mb-3 rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-900">
-          <strong className="font-semibold">Out of service.</strong> The customer must be told and the impairment recorded. In step 3 this
-          also creates a deficiency of the class “impairment”.
+          <strong className="font-semibold">Out of service.</strong> The customer must be told, in writing.
+          {impairment && <> Recorded as <Link className="font-medium underline underline-offset-2" to={`/service/deficiencies/${impairment.id}`}>{impairment.number}</Link>: it stays until the repair is verified.</>}
         </p>
       )}
       <div className="border-t border-slate-100 px-5 pb-2">
@@ -244,7 +249,7 @@ function SystemDrawer({ site, system, onClose }) {
         </>
       }
     >
-      <form onSubmit={save} className="grid gap-4">
+      <form onSubmit={save} className="grid grid-cols-1 gap-4">
         <Field label="Kind of system" required error={form.error('type')} hint={form.values.type ? `Standard: ${SYSTEM_TYPES[form.values.type].standard}` : undefined}>
           <Combobox
             options={options}
@@ -337,7 +342,7 @@ function DeviceDrawer({ site, system, device, editable, onClose }) {
         )
       }
     >
-      <form onSubmit={save} className="grid gap-4" inert={editable ? undefined : true}>
+      <form onSubmit={save} className="grid grid-cols-1 gap-4" inert={editable ? undefined : true}>
         <Field label="What it is" required error={form.error('type')}>
           <Combobox
             options={deviceTypeOptions(system.type)}

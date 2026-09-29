@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { CheckIcon, ChevronsUpDownIcon, PlusIcon, SearchIcon } from 'lucide-react';
 import { cn } from '@/lib/cn.js';
 import { splitMatch } from '@/lib/format.js';
@@ -24,7 +24,9 @@ export function Combobox({
   options, value, onChange, onBlur, placeholder = 'Choose…', searchPlaceholder = 'Search…',
   noun = 'options', createLabel, onCreate, clearable = false, disabled = false, className,
 }) {
-  const { id, invalid } = useContext(FieldContext);
+  const { id: fieldId, invalid } = useContext(FieldContext);
+  const ownId = useId();
+  const id = fieldId ?? ownId;
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);

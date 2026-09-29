@@ -35,12 +35,12 @@ export function ViewAs() {
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
-          className="hidden h-9 items-center gap-2 rounded-full border border-amber-200 bg-amber-50 pl-3 pr-2.5 text-sm text-amber-950 transition-colors duration-150 hover:bg-amber-100 md:inline-flex"
+          className="hidden h-9 items-center gap-2 whitespace-nowrap rounded-full border border-amber-200 bg-amber-50 pl-3 pr-2.5 text-sm text-amber-950 transition-colors duration-150 hover:bg-amber-100 md:inline-flex"
         >
           <EyeIcon className="size-4 text-amber-700" aria-hidden="true" />
           <span>
             View as <span className="font-semibold">{user.name.split(' ')[0]}</span>
-            <span className="text-amber-800/80"> · {role.label}</span>
+            <span className="hidden text-amber-800/80 xl:inline"> · {role.label}</span>
           </span>
           <ChevronDownIcon className="size-4 text-amber-700" aria-hidden="true" />
         </button>

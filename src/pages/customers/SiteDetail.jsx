@@ -1,23 +1,25 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { PencilIcon, PlusIcon, ShieldCheckIcon, Trash2Icon, UserPlusIcon } from 'lucide-react';
+import { FilePlusIcon, PencilIcon, PlusIcon, ShieldCheckIcon, Trash2Icon, UserPlusIcon } from 'lucide-react';
 import { deleteSite, updateSite } from '@/store/actions.js';
-import { contactRoleLabel, list, siteContacts, siteSummary, systemsBySite } from '@/store/selectors.js';
+import { activityFor, contactRoleLabel, siteContacts, siteSummary, systemsBySite } from '@/store/selectors.js';
 import { useSession } from '@/store/session.js';
 import { useStore } from '@/store/store.js';
 import { toast } from '@/store/toast.js';
-import { diffDays, fmtDate, relTime, todayISO } from '@/lib/dates.js';
+import { diffDays, fmtDate, todayISO } from '@/lib/dates.js';
 import { num, plural } from '@/lib/format.js';
 import { useParam } from '@/lib/useParam.js';
+import { ActivityList } from '@/ui/Activity.jsx';
 import { Avatar, Badge } from '@/ui/Badge.jsx';
 import { Button } from '@/ui/Button.jsx';
 import { Field, TextInput, useForm } from '@/ui/Form.jsx';
 import { ConfirmDialog, Drawer } from '@/ui/Overlay.jsx';
 import { Card, DefinitionList, EmptyState, Page, Tabs } from '@/ui/Page.jsx';
 import { SYSTEM_TYPES } from '@/data/catalog.js';
+import { SiteService } from '@/pages/service/SiteService.jsx';
 import { ContactDrawer } from './ContactDrawer.jsx';
 import { EquipmentTab } from './Equipment.jsx';
-import { ContactRows, HealthBadge, staffName } from './parts.jsx';
+import { ContactRows, HealthBadge } from './parts.jsx';
 
 const ABOUT = {
   purpose: 'One building or place: what it is, who owns it and who pays, how to get in, what equipment is installed and how soon each part needs service.',
@@ -59,7 +61,7 @@ function certificate(expiry) {
 function Body({ site }) {
   const s = useStore();
   const navigate = useNavigate();
-  const { canEdit } = useSession();
+  const { access, canEdit } = useSession();
   const [tab, setTab] = useParam('tab', 'overview');
   const [openDevice, setOpenDevice] = useParam('open');
   const [systemDrawer, setSystemDrawer] = useState(null);
@@ -72,9 +74,7 @@ function Body({ site }) {
   const sum = siteSummary(s, site.id);
   const systems = systemsBySite(s)[site.id] ?? [];
   const contacts = siteContacts(s, site);
-  const activity = list(s.activity)
-    .filter((a) => a.entity === 'site' && a.entityId === site.id)
-    .toSorted((a, b) => b.at.localeCompare(a.at));
+  const activity = activityFor(s, 'site', site.id);
 
   const editSite = canEdit('customers');
   const editService = canEdit('service');
@@ -83,9 +83,10 @@ function Body({ site }) {
     ? [
         { label: 'Edit site', icon: PencilIcon, onClick: () => navigate(`/customers/sites/${site.id}/edit`) },
         { label: 'Add contact', icon: UserPlusIcon, onClick: () => setContactDrawer({ open: true, contact: null }) },
+        canEdit('sales') && { label: 'New quotation for this site', icon: FilePlusIcon, onClick: () => navigate(`/sales/quotations/new?customer=${site.customerId}&site=${site.id}`) },
         { separator: true },
         { label: 'Delete site', icon: Trash2Icon, tone: 'danger', onClick: () => setConfirmDelete(true), disabled: systems.length > 0, sub: systems.length > 0 ? 'It has systems' : undefined },
-      ]
+      ].filter(Boolean)
     : undefined;
 
   return (
@@ -117,13 +118,14 @@ function Body({ site }) {
           items={[
             { value: 'overview', label: 'Overview' },
             { value: 'equipment', label: 'Equipment', count: systems.length },
+            ...(access('service') ? [{ value: 'service', label: 'Service' }] : []),
             { value: 'contacts', label: 'Contacts', count: contacts.length },
           ]}
         />
       }
     >
       {tab === 'overview' && (
-        <div className="grid gap-5 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
           <div className="space-y-5 lg:col-span-2">
             <Card title="Site details" action={editSite && <Button variant="ghost" size="xs" icon={PencilIcon} to={`/customers/sites/${site.id}/edit`}>Edit</Button>}>
               <DefinitionList
@@ -224,23 +226,7 @@ function Body({ site }) {
                 </button>
               )}
             </Card>
-            <Card title="Recent activity">
-              {activity.length === 0 ? (
-                <p className="text-sm text-slate-500">Nothing yet.</p>
-              ) : (
-                <ol className="space-y-3">
-                  {activity.slice(0, 6).map((a) => (
-                    <li key={a.id} className="flex gap-3">
-                      <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-slate-300" aria-hidden="true" />
-                      <div className="min-w-0">
-                        <p className="text-sm text-slate-800">{a.text}</p>
-                        <p className="text-xs text-slate-500">{staffName(s, a.by)} · {relTime(a.at)}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </Card>
+            <Card title="Recent activity"><ActivityList entries={activity} /></Card>
           </div>
         </div>
       )}
@@ -255,6 +241,8 @@ function Body({ site }) {
           setSystemDrawer={setSystemDrawer}
         />
       )}
+
+      {tab === 'service' && <SiteService site={site} />}
 
       {tab === 'contacts' && (
         <ContactRows
@@ -317,7 +305,7 @@ function CivilDefenceDrawer({ site, onClose }) {
         </>
       }
     >
-      <form onSubmit={save} className="grid gap-4">
+      <form onSubmit={save} className="grid grid-cols-1 gap-4">
         <Field label="File number" required error={form.error('fileNo')}><TextInput {...form.bind('fileNo')} /></Field>
         <Field label="Last inspection"><TextInput type="date" {...form.bind('lastInspection')} /></Field>
         <Field label="Certificate valid until"><TextInput type="date" {...form.bind('certificateExpiry')} /></Field>

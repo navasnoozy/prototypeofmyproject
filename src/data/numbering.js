@@ -17,4 +17,5 @@ export const NUMBER_FORMATS = {
   invoice: (n) => `INV-${yr()}-${pad(n, 4)}`,
   creditNote: (n) => `CN-${yr()}-${pad(n, 4)}`,
   receipt: (n) => `RCT-${yr()}-${pad(n, 4)}`,
+  certificate: (n) => `MC-${yr()}-${pad(n, 4)}`,
 };

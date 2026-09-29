@@ -39,7 +39,7 @@ const Count = ({ children }) => (
 
 // Tabs that are pages of an area (the address changes).
 export const NavTabs = ({ items }) => (
-  <nav aria-label="Pages of this area" className="-mb-px flex gap-6 overflow-x-auto">
+  <nav aria-label="Pages of this area" className="no-scrollbar -mb-px flex gap-6 overflow-x-auto">
     {items.map((t) => (
       <NavLink key={t.to} to={t.to} end={t.end ?? true} className={({ isActive }) => tabClass(isActive)}>
         {t.label}
@@ -51,7 +51,7 @@ export const NavTabs = ({ items }) => (
 
 // Tabs that switch the view of one record (a value in the address's query).
 export const Tabs = ({ items, value, onChange }) => (
-  <div role="tablist" className="-mb-px flex gap-6 overflow-x-auto">
+  <div role="tablist" className="no-scrollbar -mb-px flex gap-6 overflow-x-auto">
     {items.map((t) => (
       <button
         key={t.value}
@@ -116,12 +116,12 @@ export function Page({ title, badge, facts, back, actions, menu, about, tabs, fo
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="sticky top-0 z-20 shrink-0 rounded-t-3xl border-b border-slate-200 bg-white px-4 pt-4 md:static md:px-6 md:pt-5">
+      <header className="sticky top-0 z-20 shrink-0 rounded-t-3xl border-b border-slate-200 bg-white px-4 pt-4 md:static md:px-6 md:pt-5 print:hidden">
         <div className={cn('flex flex-wrap items-center gap-x-3 gap-y-3 md:flex-nowrap', !tabs && 'pb-4')}>
           {back && <div className="order-1"><BackButton fallback={back} /></div>}
           <div className="order-3 w-full min-w-0 md:order-2 md:w-auto md:flex-1">
-            <div className="flex items-center gap-3">
-              <h1 className="truncate text-xl font-semibold tracking-tight text-slate-900 md:text-[22px] md:leading-7">{title}</h1>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h1 className="min-w-0 truncate text-xl font-semibold tracking-tight text-slate-900 md:text-[22px] md:leading-7">{title}</h1>
               {badge}
             </div>
             {facts && <p className="mt-0.5 truncate text-sm text-slate-500">{facts}</p>}
@@ -137,10 +137,10 @@ export function Page({ title, badge, facts, back, actions, menu, about, tabs, fo
         {tabs && <div className="mt-3">{tabs}</div>}
       </header>
 
-      <div className={cn('min-h-0 flex-1 md:overflow-y-auto', !flush && 'px-4 py-5 md:px-6', className)}>{children}</div>
+      <div className={cn('min-h-0 flex-1 md:overflow-y-auto print:overflow-visible', !flush && 'px-4 py-5 md:px-6 print:p-0', className)}>{children}</div>
 
       {footer && (
-        <footer className="shrink-0 rounded-b-3xl border-t border-slate-200 bg-white px-4 py-3 md:px-6">{footer}</footer>
+        <footer className="shrink-0 rounded-b-3xl border-t border-slate-200 bg-white px-4 py-3 md:px-6 print:hidden">{footer}</footer>
       )}
       {about && <About about={about} title={title} open={aboutOpen} onClose={() => setAboutOpen(false)} />}
     </div>

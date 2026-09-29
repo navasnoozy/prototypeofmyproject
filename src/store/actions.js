@@ -1,3 +1,4 @@
+import { impairSystem, restoreSystem } from './serviceActions.js';
 import { transact } from './store.js';
 import { todayISO } from '@/lib/dates.js';
 
@@ -108,10 +109,9 @@ export function saveSystem(system) {
 }
 
 export function setSystemStatus(id, status) {
-  transact((tx) => {
-    const sys = tx.patch('systems', id, { status });
-    tx.log('site', sys.siteId, `${sys.name} ${status === 'impaired' ? 'marked out of service (impaired)' : 'back in service'}`);
-  });
+  // Out of service is an impairment (Service records it); back in service closes it.
+  if (status === 'impaired') impairSystem(id);
+  else restoreSystem(id);
 }
 
 export function deleteSystem(id) {

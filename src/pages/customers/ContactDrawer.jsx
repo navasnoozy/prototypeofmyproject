@@ -86,7 +86,7 @@ function Body({ onClose, contact, customerId, siteId }) {
         </>
       }
     >
-      <form onSubmit={save} className="grid gap-4">
+      <form onSubmit={save} className="grid grid-cols-1 gap-4">
         <Field label="Customer" required error={form.error('customerId')}>
           <Combobox
             options={customers}
@@ -117,7 +117,7 @@ function Body({ onClose, contact, customerId, siteId }) {
           <TextInput {...form.bind('email')} inputMode="email" type="email" />
         </Field>
         {sites.length > 1 && (
-          <fieldset className="grid gap-2.5">
+          <fieldset className="grid grid-cols-1 gap-2.5">
             <legend className="mb-1 text-xs font-medium text-slate-700">Acts for these sites</legend>
             <p className="-mt-1 text-xs text-slate-500">Leave all unchecked if this person acts for every site.</p>
             {sites.map((site) => (

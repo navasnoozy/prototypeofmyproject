@@ -132,7 +132,7 @@ export function Segmented({ options, value, onChange, size = 'md', label, classN
     <div
       role="radiogroup"
       aria-label={label}
-      className={cn('inline-flex w-fit max-w-full self-start rounded-full bg-slate-100 p-1', className)}
+      className={cn('no-scrollbar inline-flex w-fit max-w-full self-start overflow-x-auto rounded-full bg-slate-100 p-1', className)}
     >
       {options.map((o) => {
         const selected = o.value === value;

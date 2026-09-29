@@ -11,9 +11,16 @@ import {
   WrenchIcon,
 } from 'lucide-react';
 
+// The step of the prototype that is finished. An area whose `step` is not above
+// this number is built; the others show a page that says what will be there.
+export const BUILT_UP_TO = 4;
+export const isBuilt = (area) => area.step <= BUILT_UP_TO;
+
 // The ten areas of record 39 (still Proposed), in the order of the business
-// chain. Pages are working names. `step` says in which step of the prototype
-// the area is built; until then its page explains what will be there.
+// chain. Pages are working names (the owner calls them sub modules). `step`
+// says in which step of the prototype the area is built. `tagline` is the
+// short line of the sidebar popup, `actions` its quick "Create" entries (they
+// also appear in the global search).
 export const AREAS = [
   {
     id: 'home',
@@ -22,6 +29,7 @@ export const AREAS = [
     path: '/',
     step: 1,
     purpose: 'What matters to me today.',
+    tagline: 'What matters to me today',
     pages: [],
   },
   {
@@ -31,10 +39,16 @@ export const AREAS = [
     path: '/customers',
     step: 1,
     purpose: 'Who we work for and where: customers, their sites, their contacts.',
+    tagline: 'Who we work for and where',
     pages: [
       { id: 'customers', label: 'Customers', path: '/customers', blurb: 'Every company or person we work for, with terms and credit.' },
       { id: 'sites', label: 'Sites', path: '/customers/sites', blurb: 'Buildings and places, with their systems and equipment.' },
       { id: 'contacts', label: 'Contacts', path: '/customers/contacts', blurb: 'The people to call, by customer and by site.' },
+    ],
+    actions: [
+      { label: 'New customer', sub: 'Add a company or a person we work for', path: '/customers/new' },
+      { label: 'New site', sub: 'Add a building or a place', path: '/customers/sites/new' },
+      { label: 'New contact', sub: 'Add a person to call', path: '/customers/contacts?new=1' },
     ],
   },
   {
@@ -44,9 +58,15 @@ export const AREAS = [
     path: '/sales',
     step: 2,
     purpose: 'Winning work: enquiries and quotations of every kind.',
+    tagline: 'Winning work',
     pages: [
       { id: 'enquiries', label: 'Enquiries', path: '/sales', blurb: 'Requests that come in, from first call to a quotation.' },
       { id: 'quotations', label: 'Quotations', path: '/sales/quotations', blurb: 'One quotation with four kinds: project, contract, repair, supply.' },
+      { id: 'catalogue', label: 'Catalogue', path: '/sales/catalogue', blurb: 'Items and prices for quotations. It moves to Inventory in step 6.' },
+    ],
+    actions: [
+      { label: 'New enquiry', sub: 'Register a request from a customer', path: '/sales/new' },
+      { label: 'New quotation', sub: 'Project, contract, repair or supply', path: '/sales/quotations/new' },
     ],
   },
   {
@@ -56,12 +76,16 @@ export const AREAS = [
     path: '/service',
     step: 3,
     purpose: 'Keeping installed systems working: contracts, visits, call-outs, deficiencies, repairs, equipment, certificates.',
+    tagline: 'Keeping systems working',
     pages: [
       { id: 'contracts', label: 'Contracts', path: '/service', blurb: 'Annual maintenance contracts: terms, visit plan, billing plan.' },
       { id: 'jobs', label: 'Jobs', path: '/service/jobs', blurb: 'Planned visits, call-outs and repairs, from request to report.' },
       { id: 'deficiencies', label: 'Deficiencies', path: '/service/deficiencies', blurb: 'What was found wrong, how serious, and how it was resolved.' },
       { id: 'equipment', label: 'Equipment', path: '/service/equipment', blurb: 'All devices across all sites, with their due dates.' },
       { id: 'compliance', label: 'Compliance', path: '/service/compliance', blurb: 'Certificates and Civil Defence approvals (to be confirmed by research).' },
+    ],
+    actions: [
+      { label: 'New call-out', sub: 'A customer reports a fault', path: '/service/jobs/new' },
     ],
   },
   {
@@ -71,6 +95,7 @@ export const AREAS = [
     path: '/projects',
     step: 5,
     purpose: 'Installing systems: the project from award to handover.',
+    tagline: 'Installing systems',
     pages: [
       { id: 'projects', label: 'Projects', path: '/projects', blurb: 'Awarded installation work with budget, stages, variations and claims.' },
     ],
@@ -82,6 +107,7 @@ export const AREAS = [
     path: '/schedule',
     step: 5,
     purpose: 'Who goes where and when: planning all field work.',
+    tagline: 'Who goes where and when',
     pages: [
       { id: 'board', label: 'Planning board', path: '/schedule', blurb: 'People by day, with work dragged onto them.' },
     ],
@@ -93,6 +119,7 @@ export const AREAS = [
     path: '/purchases',
     step: 6,
     purpose: 'Buying: suppliers, purchase orders, receipts, supplier bills.',
+    tagline: 'Buying what we need',
     pages: [
       { id: 'orders', label: 'Purchase orders', path: '/purchases', blurb: 'What we ordered, from whom, and what has arrived.' },
       { id: 'suppliers', label: 'Suppliers', path: '/purchases/suppliers', blurb: 'Who we buy from, with terms and history.' },
@@ -105,6 +132,7 @@ export const AREAS = [
     path: '/inventory',
     step: 6,
     purpose: 'What we have and where: items, stock, movements.',
+    tagline: 'What we have and where',
     pages: [
       { id: 'items', label: 'Items', path: '/inventory', blurb: 'The catalogue of products and services we sell and use.' },
       { id: 'stock', label: 'Stock', path: '/inventory/stock', blurb: 'What is in the store and in each van.' },
@@ -118,6 +146,7 @@ export const AREAS = [
     path: '/billing',
     step: 7,
     purpose: 'Invoices, credit notes, receipts, statements.',
+    tagline: 'Invoices and money in',
     pages: [
       { id: 'invoices', label: 'Invoices', path: '/billing', blurb: 'Tax invoices, from draft to paid.' },
       { id: 'receipts', label: 'Receipts', path: '/billing/receipts', blurb: 'Money received and which invoices it settles.' },
@@ -132,6 +161,7 @@ export const AREAS = [
     path: '/reports',
     step: 8,
     purpose: 'Figures across areas.',
+    tagline: 'Figures across areas',
     pages: [
       { id: 'reports', label: 'Reports', path: '/reports', blurb: 'Sales, service, projects, stock and money in one place.' },
     ],
@@ -145,4 +175,16 @@ export const areaOfPath = (pathname) => {
   if (pathname === '/') return AREA_BY_ID.home;
   const first = pathname.split('/')[1];
   return AREAS.find((a) => a.id === first) ?? null;
+};
+
+// The page of an area that a path belongs to: the page with the longest path
+// that starts the address ("/customers/sites/x" belongs to "/customers/sites",
+// not to "/customers").
+export const currentPage = (area, pathname) => {
+  let best = null;
+  for (const page of area.pages) {
+    const inside = pathname === page.path || pathname.startsWith(`${page.path}/`);
+    if (inside && (!best || page.path.length > best.path.length)) best = page;
+  }
+  return best ?? area.pages[0] ?? null;
 };

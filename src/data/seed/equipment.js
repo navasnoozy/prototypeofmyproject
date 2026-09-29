@@ -177,7 +177,7 @@ export function buildEquipment(T) {
 
   // ---- Palm Grove Medical Centre -------------------------------------------
   const p = 'site_palm';
-  add(p, 'fire_alarm', 'Fire alarm system', 'Reception, ground floor', 2015, 120, [
+  add(p, 'fire_alarm', 'Fire alarm system', 'Reception, ground floor', 2015, 340, [
     ['panel', 1, 'Reception', { make: 'Bosch', model: 'Addressable panel, 2 loops' }],
     ['smoke', 260, 'Wards, corridors, theatres'],
     ['heat', 18, 'Kitchen, plant rooms, sterilisation'],
@@ -395,6 +395,10 @@ export function buildEquipment(T) {
   add(ml, 'smoke_control', 'Smoke extraction', 'Roof plant deck', 2012, 240, [
     ['fan', 18, 'Roof plant deck, basements'],
     ['damper', 64, 'Ducts, all levels'],
+  ]);
+  add(ml, 'emergency_lighting', 'Emergency lighting', 'Mall, parking and back of house', 2012, 215, [
+    ['fitting', 860, 'Mall corridors, parking, back of house'],
+    ['exit', 340, 'Exits and escape routes, all levels'],
   ]);
   add(ml, 'extinguishers', 'Portable extinguishers', 'Mall and shops', 2012, 260, [
     ['abc6', 180, 'Corridors, service areas'],

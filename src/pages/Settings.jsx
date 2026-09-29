@@ -4,12 +4,15 @@ import { AREAS } from '@/data/areas.js';
 import { NUMBER_FORMATS } from '@/data/numbering.js';
 import { ROLES } from '@/data/roles.js';
 import { COMPANY } from '@/data/seed/staff.js';
+import { saveApprovalLimits } from '@/store/salesActions.js';
+import { useSession } from '@/store/session.js';
 import { list } from '@/store/selectors.js';
 import { resetDemo, useStore } from '@/store/store.js';
 import { toast } from '@/store/toast.js';
 import { Avatar } from '@/ui/Badge.jsx';
 import { Button } from '@/ui/Button.jsx';
 import { ConfirmDialog } from '@/ui/Overlay.jsx';
+import { Field, TextInput, useForm } from '@/ui/Form.jsx';
 import { Card, DefinitionList, Page } from '@/ui/Page.jsx';
 
 const SAMPLE_KINDS = [
@@ -41,7 +44,7 @@ export function Settings() {
         ],
       }}
     >
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
           <Card title="People and what they see">
             <ul className="divide-y divide-slate-100">
@@ -62,6 +65,7 @@ export function Settings() {
               })}
             </ul>
           </Card>
+          <ApprovalLimits />
           <Card title="Numbering (samples)">
             <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
               {SAMPLE_KINDS.map(([kind, label]) => (
@@ -113,5 +117,64 @@ export function Settings() {
         This puts back the first sample data and removes every change you made in this browser. It cannot be undone.
       </ConfirmDialog>
     </Page>
+  );
+}
+
+// Who must approve a quotation. The same limits will govern purchase orders
+// and credit notes in later steps. Only the owner changes them.
+function ApprovalLimits() {
+  const s = useStore();
+  const { roleKey } = useSession();
+  const owner = roleKey === 'owner';
+  const a = s.settings.approvals;
+  const num = (v) => Number(v);
+  const form = useForm(
+    {
+      salesLimit: String(a.salesLimit), managerLimit: String(a.managerLimit),
+      salesDiscount: String(a.salesDiscount), managerDiscount: String(a.managerDiscount), marginFloor: String(a.marginFloor),
+    },
+    (v) => ({
+      ...(v.salesLimit !== '' && num(v.salesLimit) >= 0 ? {} : { salesLimit: 'Write an amount.' }),
+      ...(num(v.managerLimit) >= num(v.salesLimit) ? {} : { managerLimit: 'The manager\'s limit must not be below the first limit.' }),
+      ...(v.salesDiscount !== '' && num(v.salesDiscount) >= 0 && num(v.salesDiscount) <= 100 ? {} : { salesDiscount: 'Write a percentage from 0 to 100.' }),
+      ...(num(v.managerDiscount) >= num(v.salesDiscount) && num(v.managerDiscount) <= 100 ? {} : { managerDiscount: 'Not below the first discount, not above 100.' }),
+      ...(num(v.marginFloor) >= 0 && num(v.marginFloor) < 100 ? {} : { marginFloor: 'Write a percentage below 100.' }),
+    }),
+  );
+  const save = form.submit((v) => {
+    saveApprovalLimits({
+      salesLimit: num(v.salesLimit), managerLimit: num(v.managerLimit),
+      salesDiscount: num(v.salesDiscount), managerDiscount: num(v.managerDiscount), marginFloor: num(v.marginFloor),
+    });
+    toast('Approval limits saved');
+  });
+  return (
+    <Card title="Approval limits for quotations (samples)">
+      <form onSubmit={save} inert={owner ? undefined : true} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="A sales person may send up to" hint="Net value of the quotation, before VAT." error={form.error('salesLimit')}>
+          <TextInput {...form.bind('salesLimit')} prefix="AED" inputMode="decimal" />
+        </Field>
+        <Field label="The operations manager may approve up to" hint="Above this the owner approves." error={form.error('managerLimit')}>
+          <TextInput {...form.bind('managerLimit')} prefix="AED" inputMode="decimal" />
+        </Field>
+        <Field label="Discount a sales person may give" error={form.error('salesDiscount')}>
+          <TextInput {...form.bind('salesDiscount')} suffix="%" inputMode="decimal" />
+        </Field>
+        <Field label="Discount the manager may approve" hint="Above this the owner approves." error={form.error('managerDiscount')}>
+          <TextInput {...form.bind('managerDiscount')} suffix="%" inputMode="decimal" />
+        </Field>
+        <Field label="Margin below which a manager must approve" error={form.error('marginFloor')}>
+          <TextInput {...form.bind('marginFloor')} suffix="%" inputMode="decimal" />
+        </Field>
+        <button type="submit" className="hidden" />
+      </form>
+      <p className="mt-4 text-xs text-slate-500">
+        A customer on hold always needs the owner. If the person who prepared a quotation already has the authority, nobody else has to approve it; the one who approves is never the one who prepared it, except the owner.
+      </p>
+      <div className="mt-4">
+        <Button variant="primary" size="sm" disabled={!owner} onClick={save}>Save limits</Button>
+        {!owner && <span className="ml-3 text-xs text-slate-500">Only the owner changes the limits.</span>}
+      </div>
+    </Card>
   );
 }

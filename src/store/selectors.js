@@ -80,6 +80,12 @@ export function siteSummary(s, siteId, today = todayISO()) {
 export const siteHealth = (summary) =>
   summary.overdue > 0 ? 'overdue' : summary.soon > 0 ? 'soon' : summary.rows > 0 ? 'ok' : 'none';
 
+/** The activity lines of one record, newest first. */
+export const activityFor = (s, entity, id) =>
+  list(s.activity)
+    .filter((a) => a.entity === entity && a.entityId === id)
+    .toSorted((a, b) => b.at.localeCompare(a.at));
+
 export const contactRoleLabel = (role) => CONTACT_ROLES[role] ?? role;
 
 /**

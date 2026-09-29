@@ -15,7 +15,9 @@ pnpm dev         # opens http://localhost:3000
 ```
 
 Use **View as** (top bar) to see the product as another person of the demo
-company. Use **Reset demo data** (account menu) to start again from the first
+company. Use **Phone view** (top bar) to open a phone next to the office: it
+shows a technician's phone and shares the data with the office window, so you
+can plan a job as the coordinator and watch it arrive on the phone. Use **Reset demo data** (account menu) to start again from the first
 sample.
 
 ## What is in it
@@ -26,10 +28,10 @@ phone numbers, TRNs and amounts are samples.
 | Step | Area                            | State       |
 | ---- | ------------------------------- | ----------- |
 | 1    | Shell, Customers (with Sites, Contacts, Equipment), Home, Settings | built |
-| 2    | Sales                           | next        |
-| 3    | Service                         | to come     |
-| 4    | Technician phone view           | to come     |
-| 5    | Schedule and Projects           | to come     |
+| 2    | Sales: enquiries, quotations of four kinds with approval, catalogue | built |
+| 3    | Service: contracts, jobs (visits, call-outs, repairs), deficiencies, equipment register, compliance | built |
+| 4    | Technician phone view: Today, job page for the phone, photos, timer, phone frame next to the office | built |
+| 5    | Schedule and Projects           | next        |
 | 6    | Purchases and Inventory         | to come     |
 | 7    | Billing                         | to come     |
 | 8    | Home by role, Reports, Journeys | to come     |
@@ -44,8 +46,8 @@ Plain JavaScript (no TypeScript), React 19, Vite, Tailwind CSS 4,
 
 ```
 src/
-  data/       areas, roles, equipment catalogue, numbering, and seed/ (the sample data)
-  store/      one saved object of tables, actions that change it, selectors that read it
+  data/       areas, roles, equipment catalogue, numbering, the words and rules of Sales and Service, and seed/ (the sample data)
+  store/      one saved object of tables, actions that change it, selectors that read it (links.js keeps the threads between areas)
   ui/         the shared pieces: Button, Badge, Floating/Menu, Form, Combobox, Table, Page...
   shell/      the frame: top bar, search, sidebar, phone bar, View as, bell, account
   pages/      one folder per area
@@ -53,8 +55,9 @@ src/
 
 Rules the code follows:
 
-- Data changes only through `store/actions.js`; every action is one transaction
-  and writes a line into the activity list.
+- Data changes only through the action files of `store/` (`actions.js`, `salesActions.js`,
+  `serviceActions.js`); every action is one transaction and writes a line into the
+  activity list.
 - Sample dates are relative to today, so "due in 12 days" stays true whenever
   the prototype is opened.
 - A screen says "sample" wherever a fact was assumed (the "i" button on every

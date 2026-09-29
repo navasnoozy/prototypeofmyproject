@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowRightIcon, BoxIcon, CornerDownLeftIcon, MapPinIcon, PlusIcon, SearchIcon, XIcon } from 'lucide-react';
+import { ArrowRightIcon, BoxIcon, ClipboardListIcon, CornerDownLeftIcon, FileSignatureIcon, FileTextIcon, InboxIcon, MapPinIcon, PlusIcon, SearchIcon, TagIcon, TriangleAlertIcon, XIcon } from 'lucide-react';
 import { AREAS } from '@/data/areas.js';
 import { cn } from '@/lib/cn.js';
 import { splitMatch } from '@/lib/format.js';
+import { salesSearchEntries } from '@/store/salesSelectors.js';
 import { buildSearchIndex } from '@/store/selectors.js';
+import { serviceSearchEntries } from '@/store/serviceSelectors.js';
 import { useSession } from '@/store/session.js';
 import { useStore } from '@/store/store.js';
 import { Avatar, Kbd, modKey } from '@/ui/Badge.jsx';
@@ -32,7 +34,7 @@ const pushRecent = (entry) => {
   }
 };
 
-const TYPE_ORDER = ['Go to', 'Customers', 'Sites', 'Contacts', 'Equipment'];
+const TYPE_ORDER = ['Go to', 'Customers', 'Sites', 'Contacts', 'Enquiries', 'Quotations', 'Contracts', 'Jobs', 'Deficiencies', 'Equipment', 'Catalogue'];
 
 function score(entry, tokens) {
   const title = entry.title.toLowerCase();
@@ -51,7 +53,7 @@ function Row({ entry, query, active, onHover, onPick }) {
   if (entry.type === 'Customers') lead = <Avatar name={entry.title} shape="square" size="sm" />;
   else if (entry.type === 'Contacts') lead = <Avatar name={entry.title} size="sm" />;
   else {
-    const Icon = { Sites: MapPinIcon, Equipment: BoxIcon, Action: PlusIcon }[entry.type] ?? ArrowRightIcon;
+    const Icon = { Sites: MapPinIcon, Equipment: BoxIcon, Action: PlusIcon, Enquiries: InboxIcon, Quotations: FileTextIcon, Catalogue: TagIcon, Contracts: FileSignatureIcon, Jobs: ClipboardListIcon, Deficiencies: TriangleAlertIcon }[entry.type] ?? ArrowRightIcon;
     lead = (
       <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-600">
         <Icon className="size-4" aria-hidden="true" />
@@ -133,19 +135,24 @@ export function Search({ onOpenChange }) {
             keywords: '',
           })),
     );
-    return [...goTo, ...buildSearchIndex(state).filter((e) => access('customers') || e.type === 'Go to')];
+    return [
+      ...goTo,
+      ...buildSearchIndex(state).filter(() => access('customers')),
+      ...salesSearchEntries(state).filter(() => access('sales')),
+      ...serviceSearchEntries(state).filter(() => access('service')),
+    ];
     // `access` follows the person, who is part of the state.
   }, [state]);
 
+  // Quick actions are the "Create" entries of the areas the person may change.
   const actions = useMemo(
     () =>
-      [
-        canEdit('customers') && { title: 'New customer', sub: 'Add a company or a person we work for', path: '/customers/new' },
-        canEdit('customers') && { title: 'New site', sub: 'Add a building or a place', path: '/customers/sites/new' },
-        canEdit('customers') && { title: 'New contact', sub: 'Add a person to call', path: '/customers/contacts?new=1' },
-      ]
-        .filter(Boolean)
-        .map((a) => ({ ...a, type: 'Action', id: a.path, keywords: '' })),
+      AREAS.flatMap((a) => (canEdit(a.id) ? a.actions ?? [] : [])).map((a) => ({
+        ...a,
+        type: 'Action',
+        id: a.path,
+        keywords: '',
+      })),
     [state],
   );
 

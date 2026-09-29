@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { ArrowRightIcon, CheckIcon, CircleDashedIcon } from 'lucide-react';
-import { AREAS } from '@/data/areas.js';
+import { AREAS, isBuilt } from '@/data/areas.js';
 import { COMPANY } from '@/data/seed/staff.js';
 import { fmtDate, todayISO } from '@/lib/dates.js';
 import { num } from '@/lib/format.js';
@@ -10,6 +10,7 @@ import { useStore } from '@/store/store.js';
 import { Kbd, modKey } from '@/ui/Badge.jsx';
 import { Card, Page } from '@/ui/Page.jsx';
 import { useAttention } from '@/shell/attention.js';
+import { TechnicianToday } from './TechnicianToday.jsx';
 
 const ABOUT = {
   purpose: 'Home is the first thing a person sees. In the product it shows what matters to that person today, by role. For now it explains this prototype and shows what is built.',
@@ -28,7 +29,13 @@ const greeting = () => {
 const dateWords = () =>
   new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
+// A technician's home is the day's jobs (Today); every other role gets the general home.
 export function Home() {
+  const { roleKey } = useSession();
+  return roleKey === 'technician' ? <TechnicianToday /> : <OfficeHome />;
+}
+
+function OfficeHome() {
   const s = useStore();
   const { user, role, access } = useSession();
   const { items } = useAttention();
@@ -43,7 +50,7 @@ export function Home() {
 
   return (
     <Page title={`${greeting()}, ${user.name.split(' ')[0]}`} facts={`${dateWords()} · ${COMPANY.name}`} about={ABOUT}>
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
           {tiles.length > 0 && (
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -83,6 +90,7 @@ export function Home() {
                 Open <Link className="font-medium text-slate-900 underline underline-offset-2" to="/customers/cus_marina">Marina Crest Owners Association</Link>, then its site, then the
                 Equipment tab. Every device has a next due date.
               </li>
+              <li>Point at an area in the sidebar, for example <strong className="font-semibold text-slate-900">Customers</strong>. A popup shows its sub modules and quick actions.</li>
               <li className="flex flex-wrap items-center gap-1.5">
                 Press <span className="flex gap-1"><Kbd>{modKey()}</Kbd><Kbd>K</Kbd></span> and type “marina”, “fire alarm” or a phone number.
               </li>
@@ -91,6 +99,23 @@ export function Home() {
                 Put <Link className="font-medium text-slate-900 underline underline-offset-2" to="/customers/cus_khalid">a customer</Link> on hold from its “⋯” menu, then look at the bell.
               </li>
               <li>Add a new customer with a first contact, then add a site and a fire alarm system to it.</li>
+              <li>
+                Follow a maintenance contract: in <Link className="font-medium text-slate-900 underline underline-offset-2" to="/sales/quotations/qt_131">QT-2026-0131</Link> (Harbour View) record that the customer
+                accepted, press <strong className="font-semibold text-slate-900">Start the contract</strong>, send it to the authority, record its approval, and look at the visits it released in
+                <Link className="ml-1 font-medium text-slate-900 underline underline-offset-2" to="/service/jobs?status=upcoming">Jobs</Link>.
+              </li>
+              <li>
+                Open the <Link className="font-medium text-slate-900 underline underline-offset-2" to="/service/jobs/jb_1">visit at Palm Grove</Link> that is under way: mark the rest as pass, complete it, get the
+                customer's signature, issue the report and send it. Then look at the equipment of that site: the due dates moved.
+              </li>
+              <li>
+                Follow a repair from the start: <Link className="font-medium text-slate-900 underline underline-offset-2" to="/service/deficiencies/def_209">DEF-2026-0209</Link> is not reported yet. Report it, make the repair quotation,
+                and follow the deficiency until it is verified. <Link className="font-medium text-slate-900 underline underline-offset-2" to="/service/deficiencies/def_211">DEF-2026-0211</Link> is an impairment: its system is out of service.
+              </li>
+              <li>
+                Follow a quotation from start to end: open <Link className="font-medium text-slate-900 underline underline-offset-2" to="/sales/quotations">Quotations</Link>, take the draft
+                of Nexus Data Centre, send it for approval or to the customer, then use View as to approve it, and record the customer's answer.
+              </li>
             </ol>
           </Card>
         </div>
@@ -98,7 +123,7 @@ export function Home() {
         <Card title="Built so far" action={<span className="text-xs text-slate-500">{role.label}</span>}>
           <ul className="divide-y divide-slate-100">
             {AREAS.filter((a) => a.id !== 'home' && access(a.id)).map((a) => {
-              const built = a.step <= 1;
+              const built = isBuilt(a);
               return (
                 <li key={a.id}>
                   <Link to={a.path} className="flex items-center gap-3 py-2.5 hover:opacity-80">
