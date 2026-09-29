@@ -18,6 +18,7 @@ const cus = (id, name, o) => ({
   creditLimit: 0,
   salesOwner: 'staff_sara',
   status: 'active',
+  holdReason: '',
   notes: '',
   ...o,
 });

@@ -1,10 +1,11 @@
-import { MapPinIcon } from 'lucide-react';
+import { MailIcon, MapPinIcon, PencilIcon, PhoneIcon, PlusIcon, UserPlusIcon } from 'lucide-react';
 import { cn } from '@/lib/cn.js';
 import { fmtDate } from '@/lib/dates.js';
-import { list, dueOf, siteHealth } from '@/store/selectors.js';
+import { contactRoleLabel, dueOf, list, siteHealth } from '@/store/selectors.js';
 import { useStore } from '@/store/store.js';
-import { Status } from '@/ui/Badge.jsx';
-import { NavTabs } from '@/ui/Page.jsx';
+import { Avatar, Badge, Status } from '@/ui/Badge.jsx';
+import { Button } from '@/ui/Button.jsx';
+import { EmptyState, NavTabs } from '@/ui/Page.jsx';
 
 // Small pieces shared by the screens of the Customers area.
 
@@ -51,3 +52,35 @@ export const SiteTile = ({ className }) => (
 
 export const customerName = (s, id) => s.customers[id]?.name ?? '—';
 export const staffName = (s, id) => s.staff[id]?.name ?? '—';
+
+// The people of a customer or of a site, one row each.
+export function ContactRows({ contacts, editable, onEdit, onAdd, showCustomer }) {
+  if (contacts.length === 0) {
+    return (
+      <EmptyState icon={UserPlusIcon} title="No contact yet" action={editable && <Button variant="primary" icon={PlusIcon} onClick={onAdd}>Add contact</Button>}>
+        Add the people to call: the decision maker, the building manager, the accounts clerk.
+      </EmptyState>
+    );
+  }
+  return (
+    <ul className="divide-y divide-slate-100">
+      {contacts.toSorted((a, b) => Number(b.primary) - Number(a.primary)).map((p) => (
+        <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3">
+          <Avatar name={p.name} size="md" />
+          <div className="min-w-0 flex-1 basis-48">
+            <p className="flex items-center gap-2 text-sm font-medium text-slate-900">
+              <span className="truncate">{p.name}</span>
+              {p.primary && <Badge tone="blue">Main</Badge>}
+            </p>
+            <p className="truncate text-xs text-slate-500">{p.title} · {contactRoleLabel(p.role)}{showCustomer ? ` · ${showCustomer(p)}` : ''}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-700">
+            {p.phone && <a href={`tel:${p.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-1.5 hover:underline"><PhoneIcon className="size-3.5 text-slate-400" aria-hidden="true" />{p.phone}</a>}
+            {p.email && <a href={`mailto:${p.email}`} className="inline-flex items-center gap-1.5 hover:underline"><MailIcon className="size-3.5 text-slate-400" aria-hidden="true" /><span className="break-all">{p.email}</span></a>}
+          </div>
+          {editable && <Button variant="ghost" size="xs" icon={PencilIcon} onClick={() => onEdit(p)}>Edit</Button>}
+        </li>
+      ))}
+    </ul>
+  );
+}

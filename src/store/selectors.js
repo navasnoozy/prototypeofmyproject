@@ -93,7 +93,7 @@ export function attentionItems(s, today = todayISO()) {
       items.push({
         id: `hold_${c.id}`, area: 'customers', tone: 'red',
         title: `${c.name} is on hold`,
-        text: 'New work needs the owner\'s approval.',
+        text: `${c.holdReason || 'New work needs the owner\'s approval.'}`,
         to: `/customers/${c.id}`,
       });
     }

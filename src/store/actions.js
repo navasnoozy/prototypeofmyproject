@@ -26,7 +26,7 @@ export function updateCustomer(id, changes, note = 'Customer details updated') {
 
 export function setCustomerStatus(id, status, reason = '') {
   transact((tx) => {
-    tx.patch('customers', id, { status });
+    tx.patch('customers', id, { status, holdReason: status === 'on_hold' ? reason : '' });
     tx.log('customer', id, status === 'on_hold' ? `Customer put on hold: ${reason}` : 'Customer taken off hold');
   });
 }
