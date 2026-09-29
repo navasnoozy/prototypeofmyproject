@@ -7,6 +7,7 @@ import { plural } from '@/lib/format.js';
 import { useParam } from '@/lib/useParam.js';
 import { moveToHandover, releaseRetention, resumeProject, startInstallation, startTesting } from '@/store/projectActions.js';
 import { openSnags, openVariations, pendingDocuments, phaseSteps, projectStatus, readyToHandOver, testsPending } from '@/store/projectSelectors.js';
+import { projectView } from '@/store/purchaseSelectors.js';
 import { useSession } from '@/store/session.js';
 import { useStore } from '@/store/store.js';
 import { toast } from '@/store/toast.js';
@@ -20,6 +21,7 @@ import { ProjectClaims } from './ProjectClaims.jsx';
 import { ProjectCosts } from './ProjectCosts.jsx';
 import { ProjectDocuments } from './ProjectDocuments.jsx';
 import { ProjectHandover } from './ProjectHandover.jsx';
+import { ProjectMaterials } from './ProjectMaterials.jsx';
 import { ProjectOverview } from './ProjectOverview.jsx';
 import { ProjectPlan } from './ProjectPlan.jsx';
 import { ProjectVariations } from './ProjectVariations.jsx';
@@ -35,7 +37,7 @@ const ABOUT = {
   assumed: [
     'Retention is released once, at the end of the defects liability period. Some contracts release half at completion; the UAE practice is not confirmed.',
     'The Civil Defence approval of drawings and the completion certificate are steps of the flow with sample references; how each emirate does them is confirmed in the research of phase 2.',
-    'Costs are entered by hand here. From step 6 the purchase orders and supplier bills of Purchases fill them, and from step 7 Billing makes the invoices of the claims.',
+    'Materials come by themselves: the purchase orders of the project (Purchases) and the stock issued to it (Inventory) fill the costs, so nothing is typed twice. Labour, subcontracts and other costs are still entered by hand. From step 7 Billing makes the invoices of the claims.',
   ],
 };
 
@@ -50,7 +52,8 @@ export function ProjectDetail() {
       </Page>
     );
   }
-  return <Body key={p.id} p={p} />;
+  // The project with its materials added to the costs: orders and stock issues (see projectView).
+  return <Body key={p.id} p={projectView(s, p)} />;
 }
 
 function Body({ p }) {
@@ -116,6 +119,7 @@ function Body({ p }) {
           items={[
             { value: 'overview', label: 'Overview' },
             { value: 'plan', label: 'Plan' },
+            { value: 'materials', label: 'Materials' },
             { value: 'costs', label: 'Costs' },
             { value: 'variations', label: 'Variations', count: p.variations.length },
             { value: 'claims', label: 'Claims', count: p.claims.length },
@@ -138,6 +142,7 @@ function Body({ p }) {
       )}
       {tab === 'overview' && <ProjectOverview p={p} setTab={setTab} />}
       {tab === 'plan' && <ProjectPlan p={p} manage={manage} />}
+      {tab === 'materials' && <ProjectMaterials p={p} />}
       {tab === 'costs' && <ProjectCosts p={p} manage={manage} />}
       {tab === 'variations' && <ProjectVariations p={p} manage={manage} />}
       {tab === 'claims' && <ProjectClaims p={p} manage={manage} boss={boss} />}

@@ -1,5 +1,5 @@
 import { lowStockRows, movementRows, negativeBalances, stockRows } from '@/store/inventorySelectors.js';
-import { billRows, inSegment, orderViews } from '@/store/purchaseSelectors.js';
+import { billRows, inSegment, orderViews, projectView } from '@/store/purchaseSelectors.js';
 import { latestQuotations } from '@/store/salesSelectors.js';
 import { list, siteHealth, siteSummary, summariseDevices } from '@/store/selectors.js';
 import { contractStatus, jobStatus, openDeficiencies } from '@/store/serviceSelectors.js';
@@ -84,7 +84,7 @@ export function pageInfo(s, areaId, pageId) {
   }
   if (areaId === 'projects' && pageId === 'projects') {
     const active = list(s.projects).filter(isActive);
-    const over = active.filter((p) => overBudget(p).length > 0).length;
+    const over = active.filter((p) => overBudget(projectView(s, p)).length > 0).length;
     const ready = active.filter((p) => p.phase === 'handover' && readyToHandOver(p)).length;
     return {
       count: active.length,

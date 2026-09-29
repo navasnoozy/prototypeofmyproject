@@ -2,6 +2,7 @@ import { HANDOVER_DOCS, PHASE_ORDER, PHASES } from '@/data/projectKinds.js';
 import { claimFigures, contractValue, costTotals, currentProgress, lastNet, percentComplete, progressClaims, retentionHeld, workDone } from '@/data/projectRules.js';
 import { diffDays, fmtDate, todayISO } from '@/lib/dates.js';
 import { aed, plural } from '@/lib/format.js';
+import { projectView } from './purchaseSelectors.js';
 import { list } from './selectors.js';
 
 // Pure functions of the Projects area.
@@ -110,8 +111,9 @@ export function projectAttention(s, today, viewerId) {
   if (!['owner', 'manager', 'engineer'].includes(role)) return [];
   // One line for each project: its most urgent step, and how many more there are.
   const items = [];
-  for (const p of list(s.projects)) {
-    if (p.phase === 'complete') continue;
+  for (const raw of list(s.projects)) {
+    if (raw.phase === 'complete') continue;
+    const p = projectView(s, raw); // with the materials, so an overrun of an order shows
     const steps = nextSteps(p, today).filter((st) => st.tone !== 'blue' || /hand over|release the retention|Time for a progress claim/.test(st.text));
     if (steps.length === 0) continue;
     const [first, ...more] = steps;

@@ -9,6 +9,7 @@ import { latestQuotations, quotationLabel, quoteTotals } from '@/store/salesSele
 import { isActive, projectStatus } from '@/store/projectSelectors.js';
 import { list } from '@/store/selectors.js';
 import { useSession } from '@/store/session.js';
+import { projectView } from '@/store/purchaseSelectors.js';
 import { useStore } from '@/store/store.js';
 import { cn } from '@/lib/cn.js';
 import { Status } from '@/ui/Badge.jsx';
@@ -46,7 +47,7 @@ export function ProjectList() {
   const [q, setQ] = useParam('q');
   const [group, setGroup] = useParam('group', 'active');
 
-  const all = list(s.projects);
+  const all = useMemo(() => list(s.projects).map((p) => projectView(s, p)), [s]);
   const counts = useMemo(() => Object.fromEntries(Object.entries(GROUPS).map(([key, fn]) => [key, all.filter(fn).length])), [all]);
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
