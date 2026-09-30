@@ -89,6 +89,9 @@ export const DEFAULT_SETTINGS = {
     // Purchase orders: a purchase officer may commit up to poLimit alone; above it the
     // operations manager approves, and above poManagerLimit the owner (samples).
     poLimit: 10000, poManagerLimit: 100000,
+    // Credit notes: the accountant may issue up to cnLimit alone (net value); above it the
+    // operations manager approves, and above cnManagerLimit the owner (samples).
+    cnLimit: 1000, cnManagerLimit: 10000,
   },
 };
 

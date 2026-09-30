@@ -79,6 +79,7 @@ export function buildCustomers(T) {
       segment: 'Food and beverage', trn: '100890123400003', phone: '+971 4 555 0199',
       email: 'finance@desertrose.example', address: 'Unit 3, Ras Al Khor Industrial Area 2',
       area: 'Ras Al Khor', terms: 'Net 30', creditLimit: 60000, status: 'on_hold', since: D(-700),
+      holdReason: 'Two invoices are more than 60 days overdue.',
       notes: 'ON HOLD: two invoices are more than 60 days overdue. Release after payment, or a written promise from the finance manager.',
     }),
     cus('cus_oasis', 'Oasis Cold Storage LLC', {

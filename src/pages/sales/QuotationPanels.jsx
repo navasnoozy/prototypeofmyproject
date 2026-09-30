@@ -4,10 +4,12 @@ import { ANSWER_VIA, KINDS, URGENCY } from '@/data/quotationKinds.js';
 import { cn } from '@/lib/cn.js';
 import { fmtDate, relDays, todayISO } from '@/lib/dates.js';
 import { money } from '@/lib/format.js';
+import { createInvoiceFromSource } from '@/store/billingActions.js';
 import { updateQuotation } from '@/store/salesActions.js';
 import { startProjectFromQuotation } from '@/store/projectActions.js';
 import { startContractFromQuotation, startRepairJob } from '@/store/serviceActions.js';
 import { canPlanJobs } from '@/store/serviceSelectors.js';
+import { list } from '@/store/selectors.js';
 import { useSession } from '@/store/session.js';
 import { toast } from '@/store/toast.js';
 import { quoteTotals } from '@/store/salesSelectors.js';
@@ -236,21 +238,21 @@ const NEXT = {
   project: 'The project starts in Projects: its packages and their budgets are taken from the sections and costs of this quotation, and the advance claim is made.',
   contract: 'The contract is created in Service with its visit plan and its billing plan, and goes to the authority for approval before the first visit.',
   repair: 'A repair job is created in Service from this quotation and planned in Schedule. The deficiency it answers is updated.',
-  supply: 'The goods are issued from the store and delivered; one invoice follows in Billing.',
+  supply: 'The goods are delivered to the customer and one invoice follows in Billing. The stock items leave the main store when the invoice is issued.',
 };
-const NEXT_STEP = { supply: 'steps 6 and 7' };
 
 // After the customer said yes: what starts, and where. For a contract and a
 // repair the work starts from here, in Service; the card then links to it.
 export function NextStepCard({ q }) {
   const navigate = useNavigate();
-  const { canEdit, roleKey } = useSession();
+  const s = useStore();
+  const { canEdit, roleKey, may, access } = useSession();
   const f = q.followUp;
   const service = canEdit('service') && canPlanJobs(roleKey);
   const projects = canEdit('projects');
   let text = NEXT[q.kind];
   let action = null;
-  let note = NEXT_STEP[q.kind] ? `This step is built in ${NEXT_STEP[q.kind]} of the prototype; until then the quotation only shows that it was accepted.` : '';
+  let note = '';
 
   if (q.kind === 'contract' || q.kind === 'repair') {
     const isContract = q.kind === 'contract';
@@ -302,6 +304,28 @@ export function NextStepCard({ q }) {
       );
     } else {
       note = 'The project engineer starts it from here or from Projects.';
+    }
+  } else if (q.kind === 'supply') {
+    const draft = list(s.invoices).find((i) => i.source.kind === 'supply' && i.source.quotationId === q.id && i.status === 'draft');
+    if (f?.type === 'invoice') {
+      text = `The goods were delivered and invoice ${f.number} was issued.`;
+      if (access('billing')) action = <Button size="sm" variant="primary" to={`/billing/${f.id}`}>Open the invoice</Button>;
+    } else if (may('issue_invoices')) {
+      action = (
+        <Button
+          size="sm"
+          variant="primary"
+          onClick={() => {
+            const id = createInvoiceFromSource({ kind: 'supply', quotationId: q.id });
+            if (!draft) toast('Draft invoice made: check it and issue it');
+            navigate(`/billing/${id}`);
+          }}
+        >
+          {draft ? 'Open the invoice draft' : 'Deliver and invoice'}
+        </Button>
+      );
+    } else {
+      note = 'Accounts makes the invoice: the supply shows in Billing under "Ready to invoice".';
     }
   } else if (f?.number) {
     text = `${NEXT[q.kind]} It is ${f.number}.`;

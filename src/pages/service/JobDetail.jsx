@@ -16,7 +16,7 @@ import { LifeCycle } from '@/ui/LifeCycle.jsx';
 import { Card, EmptyState, Page, Tabs } from '@/ui/Page.jsx';
 import { DeficiencyDrawer } from './DeficiencyDialogs.jsx';
 import { CancelDialog, CompleteDialog, IssueDialog, PlanDrawer, SendDialog, SignDrawer } from './JobDialogs.jsx';
-import { ChecklistCard, DetailsCard, FindingsCard, JobOrdersCard, OnSiteTimer, PartsTimeCard, ReportedCard, SignoffCard, WhereCard } from './JobPanels.jsx';
+import { ChecklistCard, DetailsCard, FindingsCard, JobInvoiceCard, JobOrdersCard, OnSiteTimer, PartsTimeCard, ReportedCard, SignoffCard, WhereCard } from './JobPanels.jsx';
 import { ReportPreview } from './ReportPreview.jsx';
 
 const ABOUT = {
@@ -145,6 +145,7 @@ function Body({ j }) {
             <div className="space-y-5">
               <DetailsCard j={j} />
               <SignoffCard j={j} canAct={canAct} onSign={() => setDialog('sign')} onIssue={() => setDialog('issue')} onSend={() => setDialog('send')} onOpenReport={() => setTab('report')} />
+              <JobInvoiceCard j={j} />
               <Card title="Recent activity"><ActivityList entries={activity} /></Card>
             </div>
           </div>

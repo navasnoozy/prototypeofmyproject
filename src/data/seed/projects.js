@@ -13,8 +13,8 @@ import { advanceTotal, certifiedFigures, claimFigures, dlpEnd, emptyHandover, la
 //   PRJ-2026-003  a fire pump set for Sharjah Plastics: tested, waiting for the
 //                 Civil Defence certificate and two snags before the handover
 //                 (the handover creates the pump set in the equipment register)
-// Past claims carry invoice numbers INV-2026-0401 and up: Billing (step 7) must
-// create those documents. The materials of a project are not written here: they
+// Past claims carry placeholder invoice numbers; the billing seed makes the real
+// invoices and writes their numbers back into the claims. The materials of a project are not written here: they
 // come from its purchase orders and from the stock issued to it (data/seed/
 // purchasing.js); only labour, subcontracts and other costs are written by hand.
 

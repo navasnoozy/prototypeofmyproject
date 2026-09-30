@@ -116,6 +116,7 @@ export function movementRef(s, m) {
   if (r.kind === 'grn') return { label: r.number, to: `/purchases/${r.poId}` };
   if (r.kind === 'job') return { label: r.number, to: `/service/jobs/${r.id}` };
   if (r.kind === 'project') return { label: r.number, to: `/projects/${r.id}?tab=materials` };
+  if (r.kind === 'invoice') return { label: r.number, to: '' };
   if (r.kind === 'transfer') return { label: `${shortName(s.locations[r.from])} to ${shortName(s.locations[r.to])}`, to: '' };
   return { label: '', to: '' };
 }

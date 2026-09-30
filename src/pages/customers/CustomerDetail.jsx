@@ -17,13 +17,14 @@ import { ConfirmDialog, Modal } from '@/ui/Overlay.jsx';
 import { Field, TextArea } from '@/ui/Form.jsx';
 import { Card, DefinitionList, EmptyState, Page, Tabs } from '@/ui/Page.jsx';
 import { DataTable } from '@/ui/Table.jsx';
+import { CustomerMoneyCard } from '@/pages/billing/parts.jsx';
 import { ContactDrawer } from './ContactDrawer.jsx';
 import { KindTag } from '@/pages/sales/parts.jsx';
 import { ActivityList } from '@/ui/Activity.jsx';
 import { ContactRows, HealthBadge, SiteTile, staffName } from './parts.jsx';
 
 const ABOUT = {
-  purpose: 'Everything about one customer in one place: terms, people, the sites we look after for them, and what happened. Work and money of other areas will appear here as those areas are built.',
+  purpose: 'Everything about one customer in one place: terms, people, the sites we look after for them, the money they owe (for those who see Billing), and what happened.',
   why: [
     'The header keeps the name, the state and the one next step visible while you scroll; the next step follows the life cycle: a customer without a site starts with "Add site".',
     'A customer on hold shows a banner at the top of the page and a red dot on the bell, so nobody starts work by mistake.',
@@ -123,7 +124,7 @@ function Body({ customer }) {
         <div className="mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
           <PauseIcon className="size-4 shrink-0" aria-hidden="true" />
           <p className="min-w-0 flex-1">
-            <strong className="font-semibold">On hold.</strong> {customer.holdReason.replace(/[.\s]*$/, '.')} New work needs the owner's approval.
+            <strong className="font-semibold">On hold.</strong> {customer.holdReason ? `${customer.holdReason.replace(/[.\s]*$/, '.')} ` : ''}New work needs the owner's approval.
           </p>
           {editable && canRelease && (
             <Button size="sm" onClick={() => { setCustomerStatus(customer.id, 'active'); toast('Customer taken off hold'); }}>Take off hold</Button>
@@ -173,6 +174,7 @@ function Body({ customer }) {
             </Card>
           </div>
           <div className="space-y-5">
+            {access('billing') && <CustomerMoneyCard customerId={customer.id} />}
             <Card
               title="People"
               action={editable && <Button variant="ghost" size="xs" icon={PlusIcon} onClick={() => setContactDrawer({ open: true, contact: null })}>Add</Button>}

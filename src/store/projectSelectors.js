@@ -79,7 +79,7 @@ export function nextSteps(p, today = todayISO()) {
     const waited = diffDays(c.submittedOn, today);
     if (waited >= 14) add('orange', `${claimLabel(p, c)} has waited ${waited} days for the certificate`, 'claims');
   }
-  for (const c of p.claims.filter((x) => x.status === 'certified')) add('blue', `${claimLabel(p, c)} is certified: ready to invoice (Billing, step 7)`, 'claims');
+  for (const c of p.claims.filter((x) => x.status === 'certified')) add('blue', `${claimLabel(p, c)} is certified: ready to invoice in Billing`, 'claims');
   if (draft && since > 0) add('blue', `${claimLabel(p, draft)} is a draft: ${aed(since)} of work since the last claim`, 'claims');
   else if (!draft && p.phase === 'installation' && since > 0 && (!lastClaim || diffDays(lastClaim.submittedOn || lastClaim.periodEnd, today) >= 25)) add('blue', `Time for a progress claim: ${aed(since)} of work is not claimed yet`, 'claims');
   for (const v of p.variations.filter((x) => x.status === 'submitted')) {

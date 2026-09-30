@@ -31,6 +31,15 @@ import { JobList } from '@/pages/service/JobList.jsx';
 import { ProjectDetail } from '@/pages/projects/ProjectDetail.jsx';
 import { ProjectList } from '@/pages/projects/ProjectList.jsx';
 import { ScheduleHome } from '@/pages/schedule/ScheduleHome.jsx';
+import { CreditNoteDetail } from '@/pages/billing/CreditNoteDetail.jsx';
+import { CreditNoteForm } from '@/pages/billing/CreditNoteForm.jsx';
+import { CreditNoteList } from '@/pages/billing/CreditNoteList.jsx';
+import { InvoiceDetail } from '@/pages/billing/InvoiceDetail.jsx';
+import { InvoiceForm } from '@/pages/billing/InvoiceForm.jsx';
+import { InvoiceList } from '@/pages/billing/InvoiceList.jsx';
+import { ReceiptList } from '@/pages/billing/ReceiptList.jsx';
+import { Statement } from '@/pages/billing/Statement.jsx';
+import { StatementList } from '@/pages/billing/StatementList.jsx';
 import { Items } from '@/pages/inventory/Items.jsx';
 import { Movements } from '@/pages/inventory/Movements.jsx';
 import { Stock } from '@/pages/inventory/Stock.jsx';
@@ -43,7 +52,7 @@ import { SupplierList } from '@/pages/purchases/SupplierList.jsx';
 
 // Areas that are built in a later step show a page that explains what will be
 // there. Each is replaced by the real pages when its step is done.
-const LATER = AREAS.filter((a) => !['home', 'customers', 'sales', 'service', 'projects', 'schedule', 'purchases', 'inventory'].includes(a.id));
+const LATER = AREAS.filter((a) => !['home', 'customers', 'sales', 'service', 'projects', 'schedule', 'purchases', 'inventory', 'billing'].includes(a.id));
 
 // The catalogue moved from Sales to Inventory (step 6): old links keep working, with their query.
 function CatalogueRedirect() {
@@ -115,6 +124,19 @@ export default function App() {
           <Route index element={<Items />} />
           <Route path="stock" element={<Stock />} />
           <Route path="movements" element={<Movements />} />
+        </Route>
+
+        <Route path="billing" element={<Guard area="billing" />}>
+          <Route index element={<InvoiceList />} />
+          <Route path="new" element={<InvoiceForm />} />
+          <Route path="receipts" element={<ReceiptList />} />
+          <Route path="credit-notes" element={<CreditNoteList />} />
+          <Route path="credit-notes/new" element={<CreditNoteForm />} />
+          <Route path="credit-notes/:creditId" element={<CreditNoteDetail />} />
+          <Route path="statements" element={<StatementList />} />
+          <Route path="statements/:customerId" element={<Statement />} />
+          <Route path=":invoiceId" element={<InvoiceDetail />} />
+          <Route path=":invoiceId/edit" element={<InvoiceForm />} />
         </Route>
 
         {LATER.map((a) => (

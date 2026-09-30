@@ -120,8 +120,8 @@ export function Settings() {
   );
 }
 
-// Who must approve a quotation or a purchase order. The same idea will govern
-// credit notes in a later step. Only the owner changes the limits.
+// Who must approve a quotation, a purchase order or a credit note. Only the
+// owner changes the limits.
 function ApprovalLimits() {
   const s = useStore();
   const { roleKey } = useSession();
@@ -132,7 +132,7 @@ function ApprovalLimits() {
     {
       salesLimit: String(a.salesLimit), managerLimit: String(a.managerLimit),
       salesDiscount: String(a.salesDiscount), managerDiscount: String(a.managerDiscount), marginFloor: String(a.marginFloor),
-      poLimit: String(a.poLimit), poManagerLimit: String(a.poManagerLimit),
+      poLimit: String(a.poLimit), poManagerLimit: String(a.poManagerLimit), cnLimit: String(a.cnLimit), cnManagerLimit: String(a.cnManagerLimit),
     },
     (v) => ({
       ...(v.salesLimit !== '' && num(v.salesLimit) >= 0 ? {} : { salesLimit: 'Write an amount.' }),
@@ -142,13 +142,15 @@ function ApprovalLimits() {
       ...(num(v.marginFloor) >= 0 && num(v.marginFloor) < 100 ? {} : { marginFloor: 'Write a percentage below 100.' }),
       ...(v.poLimit !== '' && num(v.poLimit) >= 0 ? {} : { poLimit: 'Write an amount.' }),
       ...(num(v.poManagerLimit) >= num(v.poLimit) ? {} : { poManagerLimit: 'The manager\'s limit must not be below the first limit.' }),
+      ...(v.cnLimit !== '' && num(v.cnLimit) >= 0 ? {} : { cnLimit: 'Write an amount.' }),
+      ...(num(v.cnManagerLimit) >= num(v.cnLimit) ? {} : { cnManagerLimit: 'The manager\'s limit must not be below the first limit.' }),
     }),
   );
   const save = form.submit((v) => {
     saveApprovalLimits({
       salesLimit: num(v.salesLimit), managerLimit: num(v.managerLimit),
       salesDiscount: num(v.salesDiscount), managerDiscount: num(v.managerDiscount), marginFloor: num(v.marginFloor),
-      poLimit: num(v.poLimit), poManagerLimit: num(v.poManagerLimit),
+      poLimit: num(v.poLimit), poManagerLimit: num(v.poManagerLimit), cnLimit: num(v.cnLimit), cnManagerLimit: num(v.cnManagerLimit),
     });
     toast('Approval limits saved');
   });
@@ -176,6 +178,13 @@ function ApprovalLimits() {
         </Field>
         <Field label="The operations manager may approve up to" hint="Above this the owner approves." error={form.error('poManagerLimit')}>
           <TextInput {...form.bind('poManagerLimit')} prefix="AED" inputMode="decimal" />
+        </Field>
+        <p className="border-t border-slate-100 pt-4 text-xs font-medium text-slate-700 sm:col-span-2">Credit notes</p>
+        <Field label="The accountant may issue up to" hint="Net value, before VAT." error={form.error('cnLimit')}>
+          <TextInput {...form.bind('cnLimit')} prefix="AED" inputMode="decimal" />
+        </Field>
+        <Field label="The operations manager may approve up to" hint="Above this the owner approves." error={form.error('cnManagerLimit')}>
+          <TextInput {...form.bind('cnManagerLimit')} prefix="AED" inputMode="decimal" />
         </Field>
         <button type="submit" className="hidden" />
       </form>

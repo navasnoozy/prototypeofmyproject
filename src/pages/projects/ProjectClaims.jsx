@@ -1,10 +1,15 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { PlusIcon } from 'lucide-react';
 import { amountOf, certifiedFigures, claimedTotal, contractValue, netOf, paidTotal, progressClaims, retentionHeld } from '@/data/projectRules.js';
 import { addDays, addMonths, diffDays, fmtDate, todayISO } from '@/lib/dates.js';
 import { aed, money } from '@/lib/format.js';
-import { certifyClaim, createProgressClaim, deleteClaim, markClaimPaid, releaseRetention, submitClaim } from '@/store/projectActions.js';
+import { createInvoiceFromSource } from '@/store/billingActions.js';
+import { invoiceView } from '@/store/billingSelectors.js';
+import { certifyClaim, createProgressClaim, deleteClaim, releaseRetention, submitClaim } from '@/store/projectActions.js';
 import { claimLabel, claimView, draftClaim, sinceLastClaim } from '@/store/projectSelectors.js';
+import { useSession } from '@/store/session.js';
+import { useStore } from '@/store/store.js';
 import { toast } from '@/store/toast.js';
 import { Status } from '@/ui/Badge.jsx';
 import { Button } from '@/ui/Button.jsx';
@@ -51,8 +56,18 @@ function CertifyDialog({ p, c, onClose }) {
 }
 
 function ClaimCard({ p, c, manage, onCertify }) {
+  const s = useStore();
+  const navigate = useNavigate();
+  const { may, access } = useSession();
   const view = claimView(p, c);
   const [open, setOpen] = useState(c.status === 'draft');
+  const inv = c.invoiceId ? s.invoices[c.invoiceId] : null;
+  const invState = inv?.status === 'issued' ? invoiceView(s, inv) : null;
+  const makeInvoice = () => {
+    const id = createInvoiceFromSource({ kind: 'claim', projectId: p.id, claimId: c.id });
+    if (!inv) toast('Draft invoice made: check it and issue it');
+    navigate(`/billing/${id}`);
+  };
   const prev = c.status === 'draft' ? progressClaims(p).filter((x) => x.status !== 'draft').at(-1) : progressClaims(p).filter((x) => x.status !== 'draft' && x.n < c.n).at(-1);
   const previous = prev ? netOf(prev) : 0;
   const isProgress = c.kind === 'progress';
@@ -111,8 +126,20 @@ function ClaimCard({ p, c, manage, onCertify }) {
           {c.status === 'draft' && <Button size="xs" variant="primary" onClick={() => { submitClaim(p.id, c.id); toast('Claim submitted to the customer: its figures are now fixed'); }}>Submit to the customer</Button>}
           {c.status === 'draft' && isProgress && <Button size="xs" variant="danger-ghost" onClick={() => deleteClaim(p.id, c.id)}>Delete the draft</Button>}
           {c.status === 'submitted' && <Button size="xs" variant="primary" onClick={onCertify}>Record the certificate</Button>}
-          {['certified', 'invoiced'].includes(c.status) && <Button size="xs" variant="primary" onClick={() => { markClaimPaid(p.id, c.id); toast('Payment recorded (from step 7, Billing makes the invoice and the receipt)'); }}>Record payment received</Button>}
         </div>
+      )}
+      {c.status === 'certified' && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {may('issue_invoices')
+            ? <Button size="xs" variant="primary" onClick={makeInvoice}>{inv ? 'Open the invoice draft' : 'Make invoice'}</Button>
+            : <p className="text-xs text-slate-500">Certified: Accounts makes the invoice{inv ? ' (a draft is ready)' : ''}.</p>}
+        </div>
+      )}
+      {['invoiced', 'paid'].includes(c.status) && inv && (
+        <p className="mt-2 text-sm text-slate-700">
+          Invoice {access('billing') ? <Link to={`/billing/${inv.id}`} className="font-medium tabular-nums underline-offset-2 hover:underline">{inv.number}</Link> : <span className="font-medium tabular-nums">{inv.number}</span>}
+          {invState && (invState.state === 'paid' ? ': paid.' : `: AED ${money(invState.balance)} still owed${invState.state === 'overdue' ? `, ${invState.overdueDays} days overdue` : ''}.`)}
+        </p>
       )}
     </li>
   );

@@ -228,19 +228,21 @@ export function certifyClaim(id, claimId, { certifiedGross, note }) {
     tx.log('project', id, `Claim certified: AED ${certified.certAmount.toLocaleString('en-US')}`);
   });
 }
-/** Stands for the invoice and the receipt, which Billing makes properly in step 7. */
-export function markClaimPaid(id, claimId) {
-  transact((tx) => {
-    const p = project(tx, id);
-    const c = p.claims.find((x) => x.id === claimId);
-    patch(tx, id, {
-      claims: replaceIn(p.claims, claimId, { status: 'paid', paidOn: todayISO(), invoiceRef: c.invoiceRef || 'Made in Billing (step 7)' }),
-      // The retention is released: the project is complete.
-      ...(c.kind === 'retention' ? { phase: 'complete', handover: { ...p.handover, retentionReleasedOn: todayISO() } } : {}),
-    });
-    tx.log('project', id, 'Payment recorded for a claim');
-    if (c.kind === 'retention') tx.log('project', id, 'Retention released: the project is complete');
+/**
+ * A claim is paid when the invoice that Billing made from it is paid in full: Billing calls
+ * this inside its own transaction. Paying the retention release completes the project.
+ */
+export function applyClaimPayment(tx, id, claimId, on) {
+  const p = project(tx, id);
+  const c = p.claims.find((x) => x.id === claimId);
+  if (!c || c.status === 'paid') return;
+  patch(tx, id, {
+    claims: replaceIn(p.claims, claimId, { status: 'paid', paidOn: on }),
+    // The retention is released: the project is complete.
+    ...(c.kind === 'retention' ? { phase: 'complete', handover: { ...p.handover, retentionReleasedOn: on } } : {}),
   });
+  tx.log('project', id, 'Payment received for a claim');
+  if (c.kind === 'retention') tx.log('project', id, 'Retention released: the project is complete');
 }
 /** After the defects liability period (or earlier, by agreement), the retention is claimed. */
 export function releaseRetention(id, early = false) {

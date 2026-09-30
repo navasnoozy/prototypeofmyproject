@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { CheckIcon, ClockIcon, FileTextIcon, MinusIcon, NavigationIcon, PenLineIcon, PhoneIcon, PlusIcon, SendIcon, TriangleAlertIcon, XIcon } from 'lucide-react';
 import { dueGroups } from '@/data/serviceRules.js';
 import { URGENCY } from '@/data/quotationKinds.js';
@@ -7,7 +7,9 @@ import { CALL_VIA, JOB_KINDS, WINDOWS } from '@/data/serviceKinds.js';
 import { cn } from '@/lib/cn.js';
 import { fmtDate, relDays, todayISO } from '@/lib/dates.js';
 import { clockTime, durationWords, useNow } from '@/lib/useNow.js';
-import { plural } from '@/lib/format.js';
+import { money, plural } from '@/lib/format.js';
+import { createInvoiceFromSource } from '@/store/billingActions.js';
+import { invoiceView, toInvoice } from '@/store/billingSelectors.js';
 import { addJobPart, removeJobPart } from '@/store/inventoryActions.js';
 import { balanceOf } from '@/store/inventorySelectors.js';
 import { orderTitle } from '@/data/purchaseRules.js';
@@ -25,6 +27,7 @@ import { Combobox } from '@/ui/Combobox.jsx';
 import { Select, TextArea, TextInput } from '@/ui/Form.jsx';
 import { Card, DefinitionList } from '@/ui/Page.jsx';
 import { PhotoStrip } from '@/ui/Photos.jsx';
+import { InvoiceBadge } from '@/pages/billing/parts.jsx';
 import { OrderBadge } from '@/pages/purchases/parts.jsx';
 import { SiteTile } from '@/pages/customers/parts.jsx';
 import { mapsUrl, staffName, staffNames, telHref, whoToCall } from './parts.jsx';
@@ -306,7 +309,7 @@ export function PartsTimeCard({ j, editable }) {
           )}
         </div>
       </div>
-      <p className="mt-4 text-xs text-slate-500">Parts kept in stock come out of {s.locations[from]?.name ?? 'the store'}, the van of the first technician on the job, and are counted in Inventory. The time goes to the cost of the job (step 7).</p>
+      <p className="mt-4 text-xs text-slate-500">Parts kept in stock come out of {s.locations[from]?.name ?? 'the store'}, the van of the first technician on the job, and are counted in Inventory. The time is charged to the customer on the invoice when the job is chargeable (beyond the first hour), and is a cost to the company when a contract covers it.</p>
     </Card>
   );
 }
@@ -509,4 +512,47 @@ export function JobOrdersCard({ j }) {
       )}
     </Card>
   );
+}
+
+// ---- the invoice of this job ------------------------------------------------------------------------------------------------
+export function JobInvoiceCard({ j }) {
+  const s = useStore();
+  const navigate = useNavigate();
+  const { may, access } = useSession();
+  // Money is not the technician's business: the card is for those who see Billing.
+  if (!access('billing') || j.kind === 'planned_visit' || j.status === 'cancelled') return null;
+  const chargeable = j.kind === 'repair' || (j.kind === 'call_out' && !j.contractId);
+  const contract = s.contracts[j.contractId];
+  const inv = j.invoiceId ? s.invoices[j.invoiceId] : null;
+  const v = inv?.status === 'issued' ? invoiceView(s, inv) : null;
+  const ready = inv ? null : toInvoice(s).find((x) => x.source.kind === 'job' && x.source.jobId === j.id);
+  const make = () => {
+    const id = createInvoiceFromSource({ kind: 'job', jobId: j.id });
+    if (!inv) toast('Draft invoice made: check it and issue it');
+    navigate(`/billing/${id}`);
+  };
+  let body;
+  if (!chargeable) {
+    body = <p className="text-sm text-slate-600">Covered by the maintenance contract {contract?.number}: the customer is not charged for this job. The instalments of the contract pay for it.</p>;
+  } else if (inv) {
+    body = (
+      <div className="space-y-2 text-sm">
+        <p className="flex flex-wrap items-center gap-2">
+          {access('billing') ? <Link to={`/billing/${inv.id}`} className="font-medium tabular-nums text-slate-900 underline-offset-2 hover:underline">{inv.number || 'Draft invoice'}</Link> : <span className="font-medium tabular-nums">{inv.number || 'Draft invoice'}</span>}
+          {v ? <InvoiceBadge v={v} /> : <Badge>Draft</Badge>}
+        </p>
+        {v && <p className="text-slate-600">{v.state === 'paid' ? `AED ${money(v.totals.total)} paid.` : `AED ${money(v.balance)} still owed${v.state === 'overdue' ? `, ${plural(v.overdueDays, 'day')} overdue` : ''}.`}</p>}
+      </div>
+    );
+  } else if (ready) {
+    body = (
+      <div className="space-y-3 text-sm">
+        <p className="text-slate-700">Ready to invoice: <strong className="font-semibold tabular-nums text-slate-900">AED {money(ready.amount)}</strong> before VAT.</p>
+        {may('issue_invoices') ? <Button size="xs" variant="primary" onClick={make}>Make invoice</Button> : <p className="text-xs text-slate-500">Accounts makes the invoice.</p>}
+      </div>
+    );
+  } else {
+    body = <p className="text-sm text-slate-600">{j.kind === 'repair' ? 'A repair is invoiced as it was quoted.' : 'A call-out at a site with no contract is chargeable.'} The invoice can be made after the service report is issued.</p>;
+  }
+  return <Card title="Invoice">{body}</Card>;
 }

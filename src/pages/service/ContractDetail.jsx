@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { FilePlusIcon, PencilIcon, PlayIcon, SendIcon, ShieldCheckIcon, XIcon } from 'lucide-react';
 import { SYSTEM_TYPES } from '@/data/catalog.js';
-import { fmtDate, relDays, todayISO } from '@/lib/dates.js';
+import { addDays, fmtDate, relDays, todayISO } from '@/lib/dates.js';
 import { aed, money, plural } from '@/lib/format.js';
 import { useParam } from '@/lib/useParam.js';
+import { createInvoiceFromSource } from '@/store/billingActions.js';
+import { invoiceView } from '@/store/billingSelectors.js';
 import { activateContract, createRenewalQuotation, releaseContractVisits } from '@/store/serviceActions.js';
 import { canPlanJobs, contractStatus, contractSteps, visitState } from '@/store/serviceSelectors.js';
 import { activityFor, devicesBySystem, summariseDevices } from '@/store/selectors.js';
@@ -18,6 +20,7 @@ import { Button } from '@/ui/Button.jsx';
 import { LifeCycle } from '@/ui/LifeCycle.jsx';
 import { Card, DefinitionList, EmptyState, Page, Tabs } from '@/ui/Page.jsx';
 import { DataTable } from '@/ui/Table.jsx';
+import { InvoiceBadge } from '@/pages/billing/parts.jsx';
 import { DecisionDialog, EndDialog, SubmitDialog, TermsDrawer } from './ContractDialogs.jsx';
 import { staffNames } from './parts.jsx';
 
@@ -31,7 +34,7 @@ const ABOUT = {
   ],
   assumed: [
     'The visit dates are spread evenly from two weeks after the start; a real plan follows the standard for each system and the customer\'s calendar.',
-    'The authority\'s approval is a sample of the UAE process; the billing plan lists what will be invoiced, the invoices themselves come in step 7.',
+    'The authority\'s approval is a sample of the UAE process; the billing plan lists what will be invoiced, and each instalment becomes an invoice in Billing.',
   ],
 };
 
@@ -52,7 +55,7 @@ export function ContractDetail() {
 function Body({ c }) {
   const s = useStore();
   const navigate = useNavigate();
-  const { canEdit, roleKey } = useSession();
+  const { canEdit, roleKey, may, access } = useSession();
   const [tab, setTab] = useParam('tab', 'terms');
   const [dialog, setDialog] = useState(null); // submit | decide | end
   const [drawer, setDrawer] = useState(false);
@@ -111,11 +114,35 @@ function Body({ c }) {
     { key: 'who', header: 'People', hideBelow: 'lg', cell: (r) => <span className="text-slate-700">{r.job ? staffNames(s, r.job.assigneeIds) : '—'}</span> },
   ];
   const billColumns = [
-    { key: 'n', header: 'Invoice', cell: (b) => <span className="font-medium tabular-nums text-slate-900">{b.n} of {c.billingPlan.length}</span> },
+    { key: 'n', header: 'Instalment', cell: (b) => <span className="font-medium tabular-nums text-slate-900">{b.n} of {c.billingPlan.length}</span> },
     { key: 'due', header: 'To invoice on', cell: (b) => <span className="tabular-nums text-slate-900">{fmtDate(b.dueOn)}</span> },
     { key: 'amount', header: 'Amount (AED)', align: 'right', cell: (b) => money(b.amount) },
     { key: 'vat', header: 'With VAT 5%', align: 'right', hideBelow: 'md', cell: (b) => <span className="text-slate-500">{money(b.amount * 1.05)}</span> },
-    { key: 'ref', header: 'Invoice', cell: (b) => (b.invoiceRef ? <span className="tabular-nums text-slate-700">{b.invoiceRef}</span> : <span className="text-slate-400">{b.dueOn <= today ? 'Due to be invoiced' : 'Planned'}</span>) },
+    {
+      key: 'ref', header: 'Invoice',
+      cell: (b) => {
+        const inv = b.invoiceId ? s.invoices[b.invoiceId] : null;
+        if (inv) {
+          const label = inv.number || 'Draft invoice';
+          return (
+            <span className="inline-flex flex-wrap items-center gap-2">
+              {access('billing') ? <Link to={`/billing/${inv.id}`} onClick={(e) => e.stopPropagation()} className="font-medium tabular-nums text-slate-900 underline-offset-2 hover:underline">{label}</Link> : <span className="tabular-nums text-slate-700">{label}</span>}
+              <InvoiceBadge v={invoiceView(s, inv, today)} />
+            </span>
+          );
+        }
+        if (b.invoiceRef) return <span className="tabular-nums text-slate-700">{b.invoiceRef}</span>;
+        return b.dueOn < today ? <span className="font-medium text-red-700">Late: not invoiced</span> : <span className="text-slate-500">{b.dueOn === today ? 'Due to be invoiced today' : `Planned, ${relDays(b.dueOn, today)}`}</span>;
+      },
+    },
+    {
+      key: 'act', header: '',
+      cell: (b) => {
+        const soon = !b.invoiceId && !b.invoiceRef && c.status === 'active' && b.dueOn <= addDays(today, 14);
+        if (!soon || !may('issue_invoices')) return null;
+        return <Button size="xs" variant={b.dueOn <= today ? 'primary' : 'secondary'} onClick={() => { const id = createInvoiceFromSource({ kind: 'contract', contractId: c.id, rowId: b.id }); toast('Draft invoice made: check it and issue it'); navigate(`/billing/${id}`); }}>Invoice now</Button>;
+      },
+    },
   ];
 
   return (
@@ -252,10 +279,10 @@ function Body({ c }) {
       {tab === 'billing' && (
         <div className="space-y-4">
           <p className="max-w-3xl text-sm text-slate-600">
-            What will be invoiced and when, in equal parts for each period, in advance. The invoices are made in Billing (step 7); this plan says what is due.
+            What will be invoiced and when, in equal parts for each period, in advance. Each instalment is turned into an invoice in Billing: it shows in "Ready to invoice" 14 days before its date, and can be started from here with "Invoice now".
           </p>
           <DataTable columns={billColumns} rows={c.billingPlan} mobileRow={(b) => (
-            <div className="flex items-center gap-3"><div className="min-w-0 flex-1"><p className="font-medium text-slate-900">{fmtDate(b.dueOn)}</p><p className="text-xs text-slate-500">{b.invoiceRef || 'Planned'}</p></div><span className="tabular-nums text-slate-900">{money(b.amount)}</span></div>
+            <div className="flex items-center gap-3"><div className="min-w-0 flex-1"><p className="font-medium text-slate-900">{fmtDate(b.dueOn)}</p><p className="text-xs text-slate-500">{(b.invoiceId && s.invoices[b.invoiceId]?.number) || b.invoiceRef || (b.dueOn < today ? 'Late: not invoiced' : 'Planned')}</p></div><span className="tabular-nums text-slate-900">{money(b.amount)}</span></div>
           )} />
           <div className="flex justify-end">
             <dl className="w-full max-w-xs space-y-1.5 text-sm">

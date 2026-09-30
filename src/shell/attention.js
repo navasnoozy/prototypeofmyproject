@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { billingAttention } from '@/store/billingSelectors.js';
 import { inventoryAttention } from '@/store/inventorySelectors.js';
 import { purchaseAttention } from '@/store/purchaseSelectors.js';
 import { salesAttention } from '@/store/salesSelectors.js';
@@ -24,6 +25,7 @@ export function useAttention() {
     const items = [
       ...office, ...salesAttention(state, today, user.id), ...serviceAttention(state, today, user.id), ...projectAttention(state, today, user.id),
       ...scheduleAttention(state, today, user.id), ...purchaseAttention(state, today, user.id), ...inventoryAttention(state, today, user.id),
+      ...billingAttention(state, today, user.id),
     ].filter((i) => (i.action ? may(i.action) : canEdit(i.area)));
     const byArea = {};
     for (const i of items) byArea[i.area] = (byArea[i.area] ?? 0) + 1;

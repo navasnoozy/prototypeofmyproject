@@ -55,6 +55,7 @@ export const MOVEMENT_KINDS = {
   issue_job: 'Used on a job',
   return_job: 'Taken off a job',
   issue_project: 'Issued to a project',
+  issue_sale: 'Sold to a customer',
   return_project: 'Returned from a project',
   transfer_out: 'Transferred out',
   transfer_in: 'Transferred in',
@@ -62,7 +63,7 @@ export const MOVEMENT_KINDS = {
 };
 
 export const MOVEMENT_TONE = {
-  opening: 'neutral', receipt: 'green', issue_job: 'blue', return_job: 'blue', issue_project: 'violet',
+  opening: 'neutral', receipt: 'green', issue_job: 'blue', return_job: 'blue', issue_project: 'violet', issue_sale: 'blue',
   return_project: 'violet', transfer_out: 'orange', transfer_in: 'orange', count: 'neutral',
 };
 

@@ -13,7 +13,7 @@ import {
 
 // The step of the prototype that is finished. An area whose `step` is not above
 // this number is built; the others show a page that says what will be there.
-export const BUILT_UP_TO = 6;
+export const BUILT_UP_TO = 7;
 export const isBuilt = (area) => area.step <= BUILT_UP_TO;
 
 // The ten areas of record 39 (still Proposed), in the order of the business
@@ -154,6 +154,10 @@ export const AREAS = [
     step: 7,
     purpose: 'Invoices, credit notes, receipts, statements.',
     tagline: 'Invoices and money in',
+    actions: [
+      { label: 'New invoice', sub: 'Invoice something that has no other record', path: '/billing/new' },
+      { label: 'New receipt', sub: 'Record money a customer paid', path: '/billing/receipts?new=1' },
+    ],
     pages: [
       { id: 'invoices', label: 'Invoices', path: '/billing', blurb: 'Tax invoices, from draft to paid.' },
       { id: 'receipts', label: 'Receipts', path: '/billing/receipts', blurb: 'Money received and which invoices it settles.' },

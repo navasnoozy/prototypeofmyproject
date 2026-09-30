@@ -23,7 +23,7 @@ export function buildService(T, { sites, systems: systemsIn, devices: devicesIn,
   const byCode = Object.fromEntries(Object.values(items).map((i) => [i.code, i]));
   let seq = 0;
   const nid = (p) => `${p}_v${++seq}`;
-  let invoiceSeq = 300; // invoice numbers of past billing periods; Billing (step 7) creates them
+  let invoiceSeq = 300; // placeholder numbers of past instalments; the billing seed replaces them with the numbers of the real invoices
   const label = (d) => {
     const sys = systems[d.systemId];
     return `${SYSTEM_TYPES[sys.type].devices[d.type].label}${d.qty > 1 ? ` x ${d.qty}` : ''} (${d.tag})`;

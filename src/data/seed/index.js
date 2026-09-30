@@ -3,6 +3,7 @@ import { STAFF } from './staff.js';
 import { buildContacts, buildCustomers, buildSites } from './customers.js';
 import { buildEquipment } from './equipment.js';
 import { DEFAULT_SETTINGS, buildItems, buildSales } from './sales.js';
+import { buildBilling } from './billing.js';
 import { buildProjects } from './projects.js';
 import { addStockFields, buildPurchasing } from './purchasing.js';
 import { buildService } from './service.js';
@@ -10,7 +11,7 @@ import { NUMBER_FORMATS } from '../numbering.js';
 
 // Bump this whenever the shape of the seed changes: a browser that saved an
 // older shape then starts again from the new seed instead of breaking.
-export const SEED_VERSION = 8;
+export const SEED_VERSION = 9;
 
 const byId = (list) => Object.fromEntries(list.map((x) => [x.id, x]));
 
@@ -24,11 +25,20 @@ export function buildSeed() {
   const sites = buildSites(T);
   const service = buildService(T, { sites, systems, devices, items, quotations: sales.quotations });
   const projects = buildProjects(T, { quotations: sales.quotations, items, systems: service.systems });
-  // Suppliers, orders, deliveries, bills and the ledger of stock follow from the projects and the jobs.
-  const purchasing = buildPurchasing(T, { items, projects: projects.projects, jobs: service.jobs });
+  // Customers get their numbers in the order of the list (CUS-0001 ...).
+  const customers = buildCustomers(T);
+  Object.values(customers).forEach((c, i) => {
+    c.code = NUMBER_FORMATS.customer(i + 1);
+  });
+  const contacts = buildContacts();
+  // The money documents follow from the contracts, the claims, the jobs and the supplies; the links are written back into them.
+  const billing = buildBilling(T, { customers, sites, contacts, contracts: service.contracts, projects: projects.projects, jobs: service.jobs, quotations: sales.quotations, items });
+  // Suppliers, orders, deliveries, bills and the ledger of stock follow from the projects, the jobs and the sales.
+  const purchasing = buildPurchasing(T, { items, projects: projects.projects, jobs: service.jobs, saleIssues: billing.saleIssues });
   for (const [jobId, parts] of Object.entries(purchasing.jobParts)) service.jobs[jobId].parts = parts;
-  // What accepted quotations started.
-  for (const [id, followUp] of Object.entries({ ...service.followUps, ...projects.followUps })) sales.quotations[id].followUp = followUp;
+  // What accepted quotations started (a contract, a project, a job, an invoice).
+  for (const [id, followUp] of Object.entries({ ...service.followUps, ...projects.followUps, ...billing.followUps })) sales.quotations[id].followUp = followUp;
+
   const activity = [
     ['customer', 'cus_marina', 'staff_sara', 24 * 40, 'Payment terms set to Net 30'],
     ['customer', 'cus_marina', 'staff_sara', 24 * 1400, 'Customer created'],
@@ -50,21 +60,16 @@ export function buildSeed() {
     ...service.events.map((e) => [e.entity, e.entityId, e.by, 24 * e.daysAgo, e.text]),
     ...projects.events.map((e) => [e.entity, e.entityId, e.by, 24 * e.daysAgo, e.text]),
     ...purchasing.events.map((e) => [e.entity, e.entityId, e.by, 24 * e.daysAgo, e.text]),
+    ...billing.events.map((e) => [e.entity, e.entityId, e.by, 24 * e.daysAgo, e.text]),
   ].map(([entity, entityId, by, h, text], i) => ({
     id: `act_${i + 1}`, entity, entityId, by, at: hoursAgo(h), text,
   }));
-
-  // Customers get their numbers in the order of the list (CUS-0001 ...).
-  const customers = buildCustomers(T);
-  Object.values(customers).forEach((c, i) => {
-    c.code = NUMBER_FORMATS.customer(i + 1);
-  });
 
   return {
     staff: byId(STAFF),
     customers,
     sites,
-    contacts: buildContacts(),
+    contacts,
     systems: service.systems,
     devices: service.devices,
     contracts: service.contracts,
@@ -82,10 +87,13 @@ export function buildSeed() {
     receipts: purchasing.receipts,
     bills: purchasing.bills,
     movements: purchasing.movements,
+    invoices: billing.invoices,
+    payments: billing.payments,
+    creditNotes: billing.creditNotes,
     enquiries: sales.enquiries,
     quotations: sales.quotations,
     settings: DEFAULT_SETTINGS,
-    counters: { customer: 19, activity: activity.length, ...sales.counters, ...service.counters, ...projects.counters, ...purchasing.counters },
+    counters: { customer: 19, activity: activity.length, ...sales.counters, ...service.counters, ...projects.counters, ...purchasing.counters, ...billing.counters },
     seededOn: T,
   };
 }

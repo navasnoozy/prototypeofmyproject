@@ -1,3 +1,5 @@
+import { unallocatedOf } from '@/data/billingRules.js';
+import { invoiceViews, isOwed, receivables, toInvoice } from '@/store/billingSelectors.js';
 import { lowStockRows, movementRows, negativeBalances, stockRows } from '@/store/inventorySelectors.js';
 import { billRows, inSegment, orderViews, projectView } from '@/store/purchaseSelectors.js';
 import { latestQuotations } from '@/store/salesSelectors.js';
@@ -128,6 +130,28 @@ export function pageInfo(s, areaId, pageId) {
       return { note: negative > 0 ? { tone: 'red', text: `${negative} need a count` } : low > 0 ? { tone: 'orange', text: `${low} below minimum` } : undefined };
     }
     if (pageId === 'movements') return { count: movementRows(s).length };
+  }
+  if (areaId === 'billing') {
+    const today = todayISO();
+    if (pageId === 'invoices') {
+      const owed = invoiceViews(s, today).filter(isOwed);
+      const overdue = owed.filter((v) => v.state === 'overdue').length;
+      const ready = toInvoice(s, today).filter((x) => !x.draftId).length;
+      return { count: owed.length, note: overdue > 0 ? { tone: 'red', text: `${overdue} overdue` } : ready > 0 ? { tone: 'orange', text: `${ready} ready to invoice` } : undefined };
+    }
+    if (pageId === 'receipts') {
+      const free = list(s.payments).filter((p) => unallocatedOf(p) > 0.004).length;
+      return { count: list(s.payments).length, note: free > 0 ? { tone: 'orange', text: `${free} to allocate` } : undefined };
+    }
+    if (pageId === 'credit-notes') {
+      const waiting = list(s.creditNotes).filter((c) => c.status === 'waiting_approval').length;
+      return { count: list(s.creditNotes).length, note: waiting > 0 ? { tone: 'orange', text: `${waiting} waiting approval` } : undefined };
+    }
+    if (pageId === 'statements') {
+      const accounts = receivables(s, today);
+      const late = accounts.filter((a) => a.oldest > 60).length;
+      return { count: accounts.length, note: late > 0 ? { tone: 'red', text: `${late} over 60 days late` } : undefined };
+    }
   }
   return {};
 }

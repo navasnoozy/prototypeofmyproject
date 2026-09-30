@@ -28,7 +28,7 @@ const ABOUT = {
   purpose: 'Creates a customer, or changes one. Only what the business needs to quote, work and invoice is asked for; the rest can be added later.',
   why: [
     'The TRN (tax registration number) is asked for here because every UAE tax invoice to a VAT-registered customer carries it; it is checked for its 15 digits.',
-    'Payment terms and a credit limit belong to the customer, so a quotation and an invoice can warn when a limit is passed (Billing, step 7).',
+    'Payment terms and a credit limit belong to the customer: the terms decide the due day of every invoice, and the invoice dialog warns when the limit would be passed.',
     'The first contact can be added in the same step, because a customer without a person to call is not useful.',
     'Errors appear when you leave a field, and go away as soon as you fix them.',
   ],

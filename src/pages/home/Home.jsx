@@ -135,6 +135,15 @@ function OfficeHome() {
                 Buy for a project: on <Link className="font-medium text-slate-900 underline underline-offset-2" to="/projects/prj_2?tab=materials">PRJ-2026-002, Materials</Link> one order is late and one arrived in part. Make a new order for the sprinkler package that takes it over its budget, and see who must approve it. Then look at the bills that are due in <Link className="font-medium text-slate-900 underline underline-offset-2" to="/purchases/bills">Purchases</Link>.
               </li>
               <li>
+                Collect the money: as Priya Nair (the accountant), open <Link className="font-medium text-slate-900 underline underline-offset-2" to="/billing">Billing</Link>. The panel “Ready to invoice” lists work that is done and not invoiced. Make an invoice from the late contract instalment, issue it, send it, record a part payment, then make a credit note against it and see who must approve it.
+              </li>
+              <li>
+                Bill a project claim: as Nadia Farouk record the certificate of the submitted claim on <Link className="font-medium text-slate-900 underline underline-offset-2" to="/projects/prj_3?tab=claims">PRJ-2026-003</Link>. Then, as Priya, make the invoice from Billing and record the payment. The claim turns to Paid in the project.
+              </li>
+              <li>
+                Chase a late customer: open <Link className="font-medium text-slate-900 underline underline-offset-2" to="/billing/statements/cus_rose">the statement of Desert Rose</Link> (on hold), split its open invoices by building, and send a reminder for the overdue ones. Then look at all customers by age in <Link className="font-medium text-slate-900 underline underline-offset-2" to="/billing/statements">Statements</Link>.
+              </li>
+              <li>
                 Follow a quotation from start to end: open <Link className="font-medium text-slate-900 underline underline-offset-2" to="/sales/quotations">Quotations</Link>, take the draft
                 of Nexus Data Centre, send it for approval or to the customer, then use View as to approve it, and record the customer's answer.
               </li>

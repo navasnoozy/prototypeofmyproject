@@ -37,7 +37,7 @@ const ABOUT = {
   assumed: [
     'Retention is released once, at the end of the defects liability period. Some contracts release half at completion; the UAE practice is not confirmed.',
     'The Civil Defence approval of drawings and the completion certificate are steps of the flow with sample references; how each emirate does them is confirmed in the research of phase 2.',
-    'Materials come by themselves: the purchase orders of the project (Purchases) and the stock issued to it (Inventory) fill the costs, so nothing is typed twice. Labour, subcontracts and other costs are still entered by hand. From step 7 Billing makes the invoices of the claims.',
+    'Materials come by themselves: the purchase orders of the project (Purchases) and the stock issued to it (Inventory) fill the costs, so nothing is typed twice. Labour, subcontracts and other costs are still entered by hand. Billing makes the invoices of the claims and records the payments, and the claims here follow them.',
   ],
 };
 

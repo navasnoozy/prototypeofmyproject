@@ -90,7 +90,7 @@ const JOB_PARTS = [
 ];
 
 // ---- the builder -------------------------------------------------------------------------------
-export function buildPurchasing(T, { items, projects, jobs }) {
+export function buildPurchasing(T, { items, projects, jobs, saleIssues = [] }) {
   const D = (n) => addDays(T, n);
   const byCode = Object.fromEntries(Object.values(items).map((i) => [i.code, i]));
   const supplierById = Object.fromEntries(SUPPLIERS.map((s) => [s.id, s]));
@@ -344,6 +344,15 @@ export function buildPurchasing(T, { items, projects, jobs }) {
         for (const part of parts) {
           post({ on, kind: 'issue_job', itemId: part.itemId, locationId, qty: -part.qty, unitCost: avg[part.itemId], ref: { kind: 'job', id: job.id, number: job.number, partId: part.id }, byId: job.assigneeIds[0] ?? 'staff_bilal' });
         }
+      },
+    });
+  }
+  // Goods sold with an invoice leave the main store on the day of the invoice.
+  for (const sale of saleIssues) {
+    timeline.push({
+      on: sale.on, pri: 4,
+      run: () => {
+        for (const l of sale.lines) post({ on: sale.on, kind: 'issue_sale', itemId: l.itemId, locationId: STORE_ID, qty: -l.qty, unitCost: avg[l.itemId], ref: { kind: 'invoice', id: sale.invoiceId, number: sale.number }, byId: 'staff_bilal' });
       },
     });
   }

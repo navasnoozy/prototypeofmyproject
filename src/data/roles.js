@@ -26,6 +26,10 @@ export const ACTIONS = {
   see_cost: 'See what items cost the company',
   stock_alerts: 'See what is low in stock',
   use_van: 'Use a van (see its stock and top-up needs)',
+  issue_invoices: 'Make, issue and send invoices',
+  receive_payments: 'Record the money customers pay and send reminders',
+  raise_credit_notes: 'Make credit notes',
+  approve_credit_notes: 'Approve credit notes (within the authority level)',
 };
 const EVERY = Object.keys(ACTIONS);
 
@@ -75,7 +79,7 @@ export const ROLES = {
     label: 'Accountant',
     authority: 0,
     access: { home: 'edit', billing: 'edit', customers: 'view', purchases: 'view', reports: 'view' },
-    can: ['record_bills', 'pay_bills', 'see_cost'],
+    can: ['record_bills', 'pay_bills', 'see_cost', 'issue_invoices', 'receive_payments', 'raise_credit_notes'],
   },
 };
 

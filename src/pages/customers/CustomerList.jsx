@@ -23,7 +23,7 @@ const ABOUT = {
   ],
   assumed: [
     'The columns, the segments and the credit limits are samples based on the reference company\'s practice.',
-    'Putting a customer on hold is a manual choice here; in the product it will also follow overdue invoices (Billing, step 7).',
+    'Putting a customer on hold is a manual choice here. Billing tells the finance people when a customer is more than 60 days late, and the decision stays with them.',
   ],
 };
 
