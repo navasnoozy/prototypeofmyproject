@@ -457,6 +457,66 @@ export function buildSales(T, { items, systems, devices }) {
     }),
   );
 
+  // ---- older work that was lost ------------------------------------------------------------
+  // Four losses, with their reasons, so the win rate is not 100% and the Sales report has something
+  // to explain. They fill gaps in the numbering and are made after everything above, so no id shifts.
+  E.push(
+    enquiry({
+      id: 'enq_21', number: 'ENQ-2026-0021', customerId: 'cus_palm', siteId: 'site_palm', contactId: 'ct_13', kind: 'project',
+      title: 'Sprinkler extension, new outpatient wing', source: 'referral', receivedOn: D(-236), dueOn: D(-224),
+      ownerId: 'staff_layla', estValue: 90000, status: 'lost', closedOn: D(-205),
+      lostReason: 'Project cancelled or postponed', lostNote: 'The hospital board postponed the outpatient wing to next year.',
+      survey: { needed: true, plannedOn: D(-232), assigneeId: 'staff_nadia', doneOn: D(-232), notes: 'The wing is still in design; the drawings are not final.' },
+    }),
+    enquiry({
+      id: 'enq_23', number: 'ENQ-2026-0023', customerId: 'cus_khalid', siteId: 'site_khalid', contactId: 'ct_33', kind: 'repair',
+      title: 'Kitchen hood: recharge and re-test the detection line', source: 'phone', receivedOn: D(-190), dueOn: D(-186),
+      ownerId: 'staff_sara', estValue: 2500, status: 'lost', closedOn: D(-158),
+      lostReason: 'Price too high', lostNote: 'The owner asked for a lower price, then used a cheaper technician.',
+    }),
+    enquiry({
+      id: 'enq_24', number: 'ENQ-2026-0024', customerId: 'cus_mall', siteId: 'site_mall', contactId: 'ct_30', kind: 'supply',
+      title: 'Fire blankets and CO₂ extinguishers for the tenants\' kitchens', source: 'email', receivedOn: D(-165), dueOn: D(-160),
+      ownerId: 'staff_omar', estValue: 10000, status: 'lost', closedOn: D(-140),
+      lostReason: 'Chose a competitor', lostNote: 'The mall management renewed with its usual supplier.',
+    }),
+    enquiry({
+      id: 'enq_27', number: 'ENQ-2026-0027', customerId: 'cus_sahara', siteId: 'site_sahara1', contactId: 'ct_16', kind: 'project',
+      title: 'Fire alarm for the warehouse annex', source: 'email', receivedOn: D(-104), dueOn: D(-96),
+      ownerId: 'staff_sara', estValue: 75000, status: 'lost', closedOn: D(-72),
+      lostReason: 'Scope changed', lostNote: 'The client redesigned the annex and will ask again.',
+      survey: { needed: true, plannedOn: D(-100), assigneeId: 'staff_nadia', doneOn: D(-100), notes: 'A steel-frame annex of 1,200 m²; the layout is not final.' },
+    }),
+  );
+  Q.push(
+    quote({
+      id: 'qt_095', number: 'QT-2026-0095', enquiryId: 'enq_23', customerId: 'cus_khalid', siteId: 'site_khalid', contactId: 'ct_33',
+      kind: 'repair', title: 'Kitchen hood: recharge and re-test the detection line', status: 'rejected', createdOn: D(-188), preparedBy: 'staff_sara',
+      ...single('Repair', [['KH-RCH', 2], ['LB-TECH', 8], ['LB-CALLN', 1]]),
+      sent: { on: D(-187), to: ['ct_33'], message: 'Our price to recharge the hood cylinders and test the detection line.' },
+      answer: { result: 'rejected', on: D(-158), via: 'phone', reference: '', byContactId: 'ct_33', byName: '', reason: 'Price too high', note: 'The owner asked for a lower price, then used a cheaper technician.' },
+    }),
+    quote({
+      id: 'qt_098', number: 'QT-2026-0098', enquiryId: 'enq_24', customerId: 'cus_mall', siteId: 'site_mall', contactId: 'ct_30',
+      kind: 'supply', title: 'Fire blankets and CO₂ extinguishers for the tenants\' kitchens', status: 'rejected', createdOn: D(-163), preparedBy: 'staff_omar',
+      ...single('Items', [['FE-CO2', 20], ['FE-BLK', 30]]),
+      sent: { on: D(-162), to: ['ct_30'], message: 'Our price for the kitchens of the tenants.' },
+      answer: { result: 'rejected', on: D(-140), via: 'phone', reference: '', byContactId: 'ct_30', byName: '', reason: 'Chose a competitor', note: 'The mall management renewed with its usual supplier.' },
+    }),
+    quote({
+      id: 'qt_109', number: 'QT-2026-0109', enquiryId: 'enq_27', customerId: 'cus_sahara', siteId: 'site_sahara1', contactId: 'ct_16',
+      kind: 'project', title: 'Fire alarm for the warehouse annex', status: 'rejected', createdOn: D(-97), preparedBy: 'staff_sara',
+      ...single('Fire alarm, warehouse annex', [
+        ['FA-PNL-2L', 1], ['FA-SD', 90], ['FA-MCP', 12], ['FA-SND', 20], ['FA-CBL', 3200], ['LB-INST', 160],
+        ['LB-TEST', 1], ['DOC-DRW', 1], ['DOC-CD', 1], ['DOC-ASB', 1],
+      ]),
+      kindData: { durationWeeks: 8, advancePct: 30, retentionPct: 5, cdApproval: 'contractor' },
+      approval: { required: 'manager', reasons: ['Net value above AED 50,000'], requestedBy: 'staff_sara', requestedOn: D(-96), comment: '', decision: 'approved', decidedBy: 'staff_omar', decidedOn: D(-96), decisionNote: 'Approved.' },
+      sent: { on: D(-95), to: ['ct_16'], message: 'Our quotation for the fire alarm of the warehouse annex.' },
+      answer: { result: 'rejected', on: D(-72), via: 'email', reference: '', byContactId: 'ct_16', byName: '', reason: 'Scope changed', note: 'The client redesigned the annex and will ask again.' },
+    }),
+  );
+
   // ---- what happened, for the activity lists ------------------------------------------
   const ev = (entity, entityId, by, daysAgo, text) => ({ entity, entityId, by, daysAgo, text });
   const events = [
@@ -497,6 +557,17 @@ export function buildSales(T, { items, systems, devices }) {
     ev('enquiry', 'enq_26', 'staff_layla', 60, 'Won: the customer signed the quotation'),
     ev('quotation', 'qt_112', 'staff_layla', 80, 'Quotation created (project)'),
     ev('quotation', 'qt_112', 'staff_layla', 60, 'Accepted by the customer (signed quotation)'),
+    ev('enquiry', 'enq_21', 'staff_layla', 205, 'Lost: project cancelled or postponed'),
+    ev('customer', 'cus_palm', 'staff_layla', 205, 'Enquiry ENQ-2026-0021 lost: project cancelled or postponed'),
+    ev('quotation', 'qt_095', 'staff_sara', 158, 'Rejected by the customer: price too high'),
+    ev('enquiry', 'enq_23', 'staff_sara', 158, 'Lost: price too high'),
+    ev('customer', 'cus_khalid', 'staff_sara', 158, 'Enquiry ENQ-2026-0023 lost: price too high'),
+    ev('quotation', 'qt_098', 'staff_omar', 140, 'Rejected by the customer: chose a competitor'),
+    ev('enquiry', 'enq_24', 'staff_omar', 140, 'Lost: chose a competitor'),
+    ev('customer', 'cus_mall', 'staff_omar', 140, 'Enquiry ENQ-2026-0024 lost: chose a competitor'),
+    ev('quotation', 'qt_109', 'staff_sara', 72, 'Rejected by the customer: scope changed'),
+    ev('enquiry', 'enq_27', 'staff_sara', 72, 'Lost: scope changed'),
+    ev('customer', 'cus_sahara', 'staff_sara', 72, 'Enquiry ENQ-2026-0027 lost: scope changed'),
   ];
 
   return {

@@ -36,7 +36,7 @@ export const Badge = ({ tone = 'neutral', dot = false, className, children }) =>
 );
 
 // The states of each kind of record, in one place, so a state looks the same
-// on every screen. Later steps add their own kinds here.
+// on every screen.
 export const STATUS = {
   customer: {
     active: ['green', 'Active'],

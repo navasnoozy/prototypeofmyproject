@@ -6,7 +6,7 @@ import { weekStart } from '@/data/projectRules.js';
 import { cn } from '@/lib/cn.js';
 import { addDays, fmtDay, todayISO } from '@/lib/dates.js';
 import { useParam } from '@/lib/useParam.js';
-import { absenceOn, boardItems } from '@/store/scheduleSelectors.js';
+import { absenceOn, boardItems, itemPath } from '@/store/scheduleSelectors.js';
 import { useSession } from '@/store/session.js';
 import { useStore } from '@/store/store.js';
 import { Badge } from '@/ui/Badge.jsx';
@@ -28,7 +28,7 @@ const fullDay = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB',
 // The days of one person for a week, as a list: made for a phone.
 export function MyWeek() {
   const s = useStore();
-  const { user } = useSession();
+  const { user, access } = useSession();
   const today = todayISO();
   const [weekParam, setWeek] = useParam('week', today);
   const start = weekStart(weekParam);
@@ -60,18 +60,21 @@ export function MyWeek() {
               {absent && <p className="mt-2 rounded-xl bg-slate-100 px-3 py-2 text-sm text-slate-700">{ABSENCE_KINDS[absent.kind]}{absent.note ? `: ${absent.note}` : ''}</p>}
               {mine.length === 0 && !absent && <p className="mt-1 text-sm text-slate-500">{weekend ? 'Weekend.' : 'Nothing planned.'}</p>}
               <ul className="mt-2 space-y-2">
-                {mine.map((it) => (
-                  <li key={it.key}>
-                    <Link to={it.kind === 'task' ? it.sitePath : it.path} className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2.5 hover:bg-slate-50">
+                {mine.map((it) => {
+                  const to = itemPath(it, Boolean(access('sales')));
+                  const row = 'flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-2.5';
+                  const body = (
+                    <>
                       <span className="w-20 shrink-0 text-xs font-medium text-slate-500">{WINDOWS[it.window].split(' (')[0]}</span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-slate-900">{it.title}</span>
                         <span className="block truncate text-xs text-slate-500">{it.sub} · {it.tag}</span>
                       </span>
-                      <ArrowRightIcon className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
-                    </Link>
-                  </li>
-                ))}
+                      {to && <ArrowRightIcon className="size-4 shrink-0 text-slate-400" aria-hidden="true" />}
+                    </>
+                  );
+                  return <li key={it.key}>{to ? <Link to={to} className={cn(row, 'hover:bg-slate-50')}>{body}</Link> : <div className={row}>{body}</div>}</li>;
+                })}
               </ul>
             </section>
           );

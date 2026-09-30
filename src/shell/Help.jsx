@@ -10,7 +10,11 @@ export function HelpContent({ onNavigate, inline = false }) {
         <li>Everything is clickable. Changes are saved in this browser only.</li>
         <li>
           <strong className="font-semibold text-slate-900">View as</strong> (top bar) shows the product as
-          another person sees it.
+          another person sees it. Every role has its own Home.
+        </li>
+        <li>
+          <strong className="font-semibold text-slate-900">Journeys</strong> are five whole stories, step by
+          step, with the person who does each step.
         </li>
         <li>
           The <strong className="font-semibold text-slate-900">i</strong> button on each screen explains what
@@ -25,10 +29,10 @@ export function HelpContent({ onNavigate, inline = false }) {
         </li>
       </ul>
       <p>
-        <Link to="/" onClick={onNavigate} className="font-medium text-slate-900 underline underline-offset-2">
-          Go to Home
+        <Link to="/journeys" onClick={onNavigate} className="font-medium text-slate-900 underline underline-offset-2">
+          Open the journeys
         </Link>{' '}
-        for the list of what is built so far.
+        to follow a story from the first step to the last.
       </p>
     </div>
   );

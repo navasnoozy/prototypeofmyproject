@@ -9,9 +9,10 @@ import { addStockFields, buildPurchasing } from './purchasing.js';
 import { buildService } from './service.js';
 import { NUMBER_FORMATS } from '../numbering.js';
 
-// Bump this whenever the shape of the seed changes: a browser that saved an
-// older shape then starts again from the new seed instead of breaking.
-export const SEED_VERSION = 9;
+// Bump this whenever the seed changes, in its shape or in its sample records: a
+// browser that saved an older seed then starts again from the new one instead of
+// breaking or missing the new records.
+export const SEED_VERSION = 10;
 
 const byId = (list) => Object.fromEntries(list.map((x) => [x.id, x]));
 

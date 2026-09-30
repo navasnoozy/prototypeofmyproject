@@ -22,7 +22,7 @@ const ABOUT = {
   ],
   assumed: [
     'Due soon means within 30 days (sample). The real rule comes from the contract and the standard for each system.',
-    'A site that is under construction has no equipment yet; it gets systems at handover (Projects, step 5).',
+    'A site that is under construction has no equipment yet; it gets systems at handover, from the project.',
   ],
 };
 

@@ -11,23 +11,16 @@ import {
   WrenchIcon,
 } from 'lucide-react';
 
-// The step of the prototype that is finished. An area whose `step` is not above
-// this number is built; the others show a page that says what will be there.
-export const BUILT_UP_TO = 7;
-export const isBuilt = (area) => area.step <= BUILT_UP_TO;
-
 // The ten areas of record 39 (still Proposed), in the order of the business
-// chain. Pages are working names (the owner calls them sub modules). `step`
-// says in which step of the prototype the area is built. `tagline` is the
-// short line of the sidebar popup, `actions` its quick "Create" entries (they
-// also appear in the global search).
+// chain. Pages are working names (the owner calls them sub modules). `tagline`
+// is the short line of the sidebar popup, `actions` its quick "Create" entries
+// (they also appear in the global search).
 export const AREAS = [
   {
     id: 'home',
     label: 'Home',
     icon: HouseIcon,
     path: '/',
-    step: 1,
     purpose: 'What matters to me today.',
     tagline: 'What matters to me today',
     pages: [],
@@ -37,7 +30,6 @@ export const AREAS = [
     label: 'Customers',
     icon: UsersIcon,
     path: '/customers',
-    step: 1,
     purpose: 'Who we work for and where: customers, their sites, their contacts.',
     tagline: 'Who we work for and where',
     pages: [
@@ -56,7 +48,6 @@ export const AREAS = [
     label: 'Sales',
     icon: FileTextIcon,
     path: '/sales',
-    step: 2,
     purpose: 'Winning work: enquiries and quotations of every kind.',
     tagline: 'Winning work',
     pages: [
@@ -73,7 +64,6 @@ export const AREAS = [
     label: 'Service',
     icon: WrenchIcon,
     path: '/service',
-    step: 3,
     purpose: 'Keeping installed systems working: contracts, visits, call-outs, deficiencies, repairs, equipment, certificates.',
     tagline: 'Keeping systems working',
     pages: [
@@ -92,7 +82,6 @@ export const AREAS = [
     label: 'Projects',
     icon: HardHatIcon,
     path: '/projects',
-    step: 5,
     purpose: 'Installing systems: the project from award to handover.',
     tagline: 'Installing systems',
     pages: [
@@ -104,7 +93,6 @@ export const AREAS = [
     label: 'Schedule',
     icon: CalendarDaysIcon,
     path: '/schedule',
-    step: 5,
     purpose: 'Who goes where and when: planning all field work.',
     tagline: 'Who goes where and when',
     pages: [
@@ -116,7 +104,6 @@ export const AREAS = [
     label: 'Purchases',
     icon: ShoppingCartIcon,
     path: '/purchases',
-    step: 6,
     purpose: 'Buying: suppliers, purchase orders, receipts, supplier bills.',
     tagline: 'Buying what we need',
     actions: [
@@ -134,7 +121,6 @@ export const AREAS = [
     label: 'Inventory',
     icon: PackageIcon,
     path: '/inventory',
-    step: 6,
     purpose: 'What we have and where: items, stock, movements.',
     tagline: 'What we have and where',
     actions: [
@@ -151,7 +137,6 @@ export const AREAS = [
     label: 'Billing',
     icon: ReceiptIcon,
     path: '/billing',
-    step: 7,
     purpose: 'Invoices, credit notes, receipts, statements.',
     tagline: 'Invoices and money in',
     actions: [
@@ -170,11 +155,14 @@ export const AREAS = [
     label: 'Reports',
     icon: ChartColumnIcon,
     path: '/reports',
-    step: 8,
-    purpose: 'Figures across areas.',
+    purpose: 'Figures across areas: money, sales, service, projects and stock.',
     tagline: 'Figures across areas',
     pages: [
-      { id: 'reports', label: 'Reports', path: '/reports', blurb: 'Sales, service, projects, stock and money in one place.' },
+      { id: 'money', label: 'Money', path: '/reports', blurb: 'Invoiced, received, owed and paid out, month by month.' },
+      { id: 'sales', label: 'Sales', path: '/reports/sales', blurb: 'Quoted, won and lost, by kind of work and by person.' },
+      { id: 'service', label: 'Service', path: '/reports/service', blurb: 'Contracts, visits, call-outs and open deficiencies.' },
+      { id: 'projects', label: 'Projects', path: '/reports/projects', blurb: 'Value, cost against budget, claims and retention.' },
+      { id: 'stock', label: 'Stock', path: '/reports/stock', blurb: 'What the stock is worth, what is low, what moved.' },
     ],
   },
 ];

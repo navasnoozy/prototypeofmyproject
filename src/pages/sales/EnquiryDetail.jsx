@@ -28,7 +28,7 @@ const ABOUT = {
     'Several quotations can belong to one enquiry (revisions and alternatives); the enquiry becomes won when one is accepted.',
   ],
   assumed: [
-    'Lost reasons are a short sample list; they feed a report of why work is lost (Reports, step 8).',
+    'Lost reasons are a short sample list; they feed the table "Why work is lost" of the Sales report.',
     'An enquiry is lost by a person\'s decision, not automatically when a quotation is rejected: the customer may ask for a revision.',
   ],
 };
@@ -227,7 +227,7 @@ function PlanDrawer({ e, onClose }) {
         <Field label="Who goes" required error={form.error('assigneeId')}>
           <Combobox options={staffOptions(s, ['engineer', 'technician', 'coordinator', 'manager'])} noun="people" placeholder="Choose a person" searchPlaceholder="Search people" {...form.bind('assigneeId')} />
         </Field>
-        <p className="text-xs text-slate-500">In step 5 the survey also appears on the planning board of the person who goes.</p>
+        <p className="text-xs text-slate-500">If an engineer or a technician goes, the survey takes the morning of that day on the planning board and in their week, so nobody books them on top of it.</p>
         <button type="submit" className="hidden" />
       </form>
     </Drawer>

@@ -9,7 +9,7 @@ import { addDays, fmtDay, todayISO } from '@/lib/dates.js';
 import { plural } from '@/lib/format.js';
 import { useParam } from '@/lib/useParam.js';
 import { dropOnBoard, removeAbsence, unplan } from '@/store/scheduleActions.js';
-import { absenceOn, boardItems, dayProblems, fieldStaff, queueItems } from '@/store/scheduleSelectors.js';
+import { absenceOn, boardItems, dayProblems, fieldStaff, itemPath, queueItems } from '@/store/scheduleSelectors.js';
 import { list } from '@/store/selectors.js';
 import { useSession } from '@/store/session.js';
 import { getState, useStore } from '@/store/store.js';
@@ -44,6 +44,8 @@ const SLOTS = [
   { window: 'all_day', label: 'All day', sub: '' },
 ];
 const ORDER = { morning: 0, afternoon: 1, all_day: 2, night: 3 };
+// The colour of the left edge of a card: service (a job) is blue, projects violet, a site survey of Sales teal.
+const EDGE = { task: 'border-l-violet-500', survey: 'border-l-teal-500' };
 const dayName = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short' });
 const fullDay = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -63,7 +65,8 @@ function Card({ item, drag, onDragStart, onDragEnd, onOpen, compact = false }) {
       data-item={item.key}
       className={cn(
         'group relative cursor-pointer rounded-xl border bg-white px-2.5 py-2 text-left shadow-[0_1px_1px_rgb(15_23_42/6%)] transition-shadow duration-150 hover:shadow-float',
-        item.kind === 'task' ? 'border-l-[3px] border-slate-200 border-l-violet-500' : 'border-l-[3px] border-slate-200 border-l-blue-500',
+        'border-l-[3px] border-slate-200',
+        EDGE[item.kind] ?? 'border-l-blue-500',
         item.status === 'in_progress' && 'ring-1 ring-violet-300',
         done && 'opacity-60',
         drag?.key === item.key && 'opacity-40',
@@ -90,7 +93,7 @@ function Card({ item, drag, onDragStart, onDragEnd, onOpen, compact = false }) {
 export function Board({ readOnly = false }) {
   const s = useStore();
   const navigate = useNavigate();
-  const { canEdit } = useSession();
+  const { canEdit, access } = useSession();
   const today = todayISO();
   const planner = canEdit('schedule') && !readOnly;
   const [weekParam, setWeek] = useParam('week', today);
@@ -127,7 +130,10 @@ export function Board({ readOnly = false }) {
   const label = mode === 'day' ? fullDay(day) : `${fmtDay(start)} to ${fmtDay(addDays(start, 6))} ${addDays(start, 6).slice(0, 4)}`;
 
   const open = (item) => {
-    if (item.kind === 'job') setDrawer({ job: s.jobs[item.id] });
+    if (item.kind === 'survey') {
+      const to = itemPath(item, Boolean(access('sales')));
+      if (to) navigate(to);
+    } else if (item.kind === 'job') setDrawer({ job: s.jobs[item.id] });
     else setDrawer({ task: s.projects[item.projectId].tasks.find((t) => t.id === item.id), project: s.projects[item.projectId] });
   };
 

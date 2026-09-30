@@ -1,8 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router';
-import { AREAS } from '@/data/areas.js';
 import { AppShell } from '@/shell/AppShell.jsx';
 import { Guard } from '@/shell/Guard.jsx';
-import { AreaPlaceholder } from '@/pages/areas/AreaPlaceholder.jsx';
 import { NotFound } from '@/pages/NotFound.jsx';
 import { Settings } from '@/pages/Settings.jsx';
 import { Home } from '@/pages/home/Home.jsx';
@@ -31,6 +29,8 @@ import { JobList } from '@/pages/service/JobList.jsx';
 import { ProjectDetail } from '@/pages/projects/ProjectDetail.jsx';
 import { ProjectList } from '@/pages/projects/ProjectList.jsx';
 import { ScheduleHome } from '@/pages/schedule/ScheduleHome.jsx';
+import { JourneyDetail } from '@/pages/journeys/JourneyDetail.jsx';
+import { JourneyList } from '@/pages/journeys/JourneyList.jsx';
 import { CreditNoteDetail } from '@/pages/billing/CreditNoteDetail.jsx';
 import { CreditNoteForm } from '@/pages/billing/CreditNoteForm.jsx';
 import { CreditNoteList } from '@/pages/billing/CreditNoteList.jsx';
@@ -41,6 +41,11 @@ import { ReceiptList } from '@/pages/billing/ReceiptList.jsx';
 import { Statement } from '@/pages/billing/Statement.jsx';
 import { StatementList } from '@/pages/billing/StatementList.jsx';
 import { Items } from '@/pages/inventory/Items.jsx';
+import { MoneyReport } from '@/pages/reports/MoneyReport.jsx';
+import { ProjectsReport } from '@/pages/reports/ProjectsReport.jsx';
+import { SalesReport } from '@/pages/reports/SalesReport.jsx';
+import { ServiceReport } from '@/pages/reports/ServiceReport.jsx';
+import { StockReport } from '@/pages/reports/StockReport.jsx';
 import { Movements } from '@/pages/inventory/Movements.jsx';
 import { Stock } from '@/pages/inventory/Stock.jsx';
 import { BillList } from '@/pages/purchases/BillList.jsx';
@@ -50,11 +55,7 @@ import { PurchaseOrderList } from '@/pages/purchases/PurchaseOrderList.jsx';
 import { SupplierDetail } from '@/pages/purchases/SupplierDetail.jsx';
 import { SupplierList } from '@/pages/purchases/SupplierList.jsx';
 
-// Areas that are built in a later step show a page that explains what will be
-// there. Each is replaced by the real pages when its step is done.
-const LATER = AREAS.filter((a) => !['home', 'customers', 'sales', 'service', 'projects', 'schedule', 'purchases', 'inventory', 'billing'].includes(a.id));
-
-// The catalogue moved from Sales to Inventory (step 6): old links keep working, with their query.
+// The catalogue moved from Sales to Inventory: old links keep working, with their query.
 function CatalogueRedirect() {
   const { search } = useLocation();
   return <Navigate to={`/inventory${search}`} replace />;
@@ -139,13 +140,16 @@ export default function App() {
           <Route path=":invoiceId/edit" element={<InvoiceForm />} />
         </Route>
 
-        {LATER.map((a) => (
-          <Route key={a.id} path={a.id} element={<Guard area={a.id} />}>
-            <Route path="*" element={<AreaPlaceholder areaId={a.id} />} />
-            <Route index element={<AreaPlaceholder areaId={a.id} />} />
-          </Route>
-        ))}
+        <Route path="reports" element={<Guard area="reports" />}>
+          <Route index element={<MoneyReport />} />
+          <Route path="sales" element={<SalesReport />} />
+          <Route path="service" element={<ServiceReport />} />
+          <Route path="projects" element={<ProjectsReport />} />
+          <Route path="stock" element={<StockReport />} />
+        </Route>
 
+        <Route path="journeys" element={<JourneyList />} />
+        <Route path="journeys/:journeyId" element={<JourneyDetail />} />
         <Route path="settings" element={<Settings />} />
         <Route path="home" element={<Navigate to="/" replace />} />
         <Route path="*" element={<NotFound />} />

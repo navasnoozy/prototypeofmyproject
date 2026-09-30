@@ -84,7 +84,7 @@ function Body({ p }) {
         run: () => (testsPending(p).length === 0 ? (moveToHandover(p.id), toast('Handover phase started')) : (toast(`${plural(testsPending(p).length, 'test')} not passed yet`, { tone: 'error' }), setTab('handover'))),
       };
     } else if (p.phase === 'handover') {
-      cta = { label: 'Hand over to the customer', icon: KeyRoundIcon, run: () => (readyToHandOver(p) ? setDialog('handover') : (toast('Not ready yet: see the checklist', { tone: 'error' }), setTab('handover'))) };
+      cta = { label: 'Hand over', icon: KeyRoundIcon, run: () => (readyToHandOver(p) ? setDialog('handover') : (toast('Not ready yet: see the checklist', { tone: 'error' }), setTab('handover'))) };
     } else if (dlpOver && !hasRetentionClaim) {
       cta = { label: 'Release the retention', icon: BanknoteIcon, run: () => { releaseRetention(p.id); toast('Retention release claim made'); setTab('claims'); } };
     }

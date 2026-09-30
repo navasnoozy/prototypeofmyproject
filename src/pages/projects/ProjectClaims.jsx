@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { PlusIcon } from 'lucide-react';
-import { amountOf, certifiedFigures, claimedTotal, contractValue, netOf, paidTotal, progressClaims, retentionHeld } from '@/data/projectRules.js';
+import { amountOf, certifiedFigures, claimedTotal, contractValue, netOf, paidTotal, progressClaims, retentionHeld, retentionReleased } from '@/data/projectRules.js';
 import { addDays, addMonths, diffDays, fmtDate, todayISO } from '@/lib/dates.js';
 import { aed, money } from '@/lib/format.js';
 import { createInvoiceFromSource } from '@/store/billingActions.js';
@@ -171,7 +171,7 @@ export function ProjectClaims({ p, manage, boss }) {
         <Stat label="Claimed" amount={claimedTotal(p)} />
         <Stat label="Certified" amount={certifiedTotal} />
         <Stat label="Paid" amount={paidTotal(p)} />
-        <Stat label="Retention held" amount={retentionHeld(p)} sub={p.handover.dlpEnd ? `until ${fmtDate(p.handover.dlpEnd)}` : `${p.retentionPct}% of the work claimed`} />
+        <Stat label="Retention held" amount={retentionHeld(p)} sub={retentionReleased(p) ? 'claimed back' : p.handover.dlpEnd ? `until ${fmtDate(p.handover.dlpEnd)}` : `${p.retentionPct}% of the work claimed`} />
       </dl>
       {p.phase === 'retention' && !releaseMade && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">

@@ -31,6 +31,18 @@ const taskItem = (s, p, t, staffId, date, index, dates) => ({
   urgency: 'normal', status: t.status, draggable: index === 0 && t.status === 'planned', path: `/projects/${p.id}?tab=plan`, sitePath: `/customers/sites/${p.siteId}`, people: t.assigneeIds, first: index === 0,
 });
 
+// A site survey planned in Sales takes the morning of its day. It is shown so that nobody is booked on top of it,
+// but it is planned (and moved) in Sales, so the board does not drag it.
+const surveyItem = (s, e) => ({
+  key: `survey:${e.id}`, kind: 'survey', id: e.id, staffId: e.survey.assigneeId, date: e.survey.plannedOn, window: 'morning',
+  title: `Site survey: ${s.customers[e.customerId]?.name ?? e.title}`, sub: s.sites[e.siteId]?.name ?? e.title, tag: 'Survey',
+  urgency: 'normal', status: e.survey.doneOn ? 'done' : 'planned', draggable: false,
+  path: `/sales/${e.id}`, sitePath: e.siteId ? `/customers/sites/${e.siteId}` : '', people: [e.survey.assigneeId], first: true,
+});
+
+/** Where a click on an item leads: jobs and (for people who may open Sales) surveys have their own page, the rest opens the site. */
+export const itemPath = (item, mayOpenSales) => (item.kind === 'job' || (item.kind === 'survey' && mayOpenSales) ? item.path : item.sitePath);
+
 /** Everything planned between two days, one item per person and day. */
 export function boardItems(s, from, to) {
   const items = [];
@@ -38,6 +50,11 @@ export function boardItems(s, from, to) {
     if (!j.plannedOn || j.plannedOn < from || j.plannedOn > to) continue;
     if (['cancelled'].includes(j.status)) continue;
     for (const staffId of j.assigneeIds) items.push(jobItem(s, j, staffId));
+  }
+  for (const e of list(s.enquiries)) {
+    const survey = e.survey;
+    if (!survey?.needed || !survey.plannedOn || !survey.assigneeId || e.status === 'lost') continue;
+    if (survey.plannedOn >= from && survey.plannedOn <= to) items.push(surveyItem(s, e));
   }
   for (const p of list(s.projects)) {
     if (p.phase === 'complete') continue;

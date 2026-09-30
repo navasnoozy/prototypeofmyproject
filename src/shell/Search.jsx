@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowRightIcon, BoxIcon, ClipboardListIcon, CornerDownLeftIcon, FileMinusIcon, FileSignatureIcon, FileTextIcon, HardHatIcon, InboxIcon, MapPinIcon, PlusIcon, ReceiptIcon, SearchIcon, ShoppingCartIcon, TagIcon, TriangleAlertIcon, TruckIcon, WalletIcon, XIcon } from 'lucide-react';
 import { AREAS } from '@/data/areas.js';
+import { JOURNEYS } from '@/data/journeys.js';
 import { cn } from '@/lib/cn.js';
 import { splitMatch } from '@/lib/format.js';
 import { billingSearchEntries } from '@/store/billingSelectors.js';
@@ -139,8 +140,13 @@ export function Search({ onOpenChange }) {
             keywords: '',
           })),
     );
+    const journeys = [
+      { type: 'Go to', id: 'journeys', title: 'Journeys', sub: 'Guided stories from the first step to the last', path: '/journeys', keywords: 'guide tour story walk-through' },
+      ...JOURNEYS.map((j) => ({ type: 'Go to', id: `journey_${j.id}`, title: `Journey: ${j.title}`, sub: j.blurb, path: `/journeys/${j.id}`, keywords: 'guide tour story' })),
+    ];
     return [
       ...goTo,
+      ...journeys,
       ...buildSearchIndex(state).filter(() => access('customers')),
       ...salesSearchEntries(state).filter(() => access('sales')),
       ...serviceSearchEntries(state).filter(() => access('service')),

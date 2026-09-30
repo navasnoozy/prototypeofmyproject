@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowRightIcon, HardHatIcon, MapPinIcon, NavigationIcon, PackageIcon, PhoneIcon, PlayIcon, PlusIcon, SearchIcon } from 'lucide-react';
+import { ArrowRightIcon, BinocularsIcon, HardHatIcon, MapPinIcon, NavigationIcon, PackageIcon, PhoneIcon, PlayIcon, PlusIcon, SearchIcon } from 'lucide-react';
 import { URGENCY } from '@/data/quotationKinds.js';
 import { JOB_KINDS, WINDOWS } from '@/data/serviceKinds.js';
 import { cn } from '@/lib/cn.js';
@@ -29,7 +29,7 @@ const ABOUT = {
     'In the product the screen keeps working without signal: the work stays on the phone and is sent later. The cloud chip at the top shows this; the account menu can simulate "no signal".',
   ],
   assumed: [
-    'The order of the day (the job in progress, emergencies, then the earliest day and time window) is a rule of the prototype. The real order comes from the Schedule board (step 5).',
+    'The order of the day (the job in progress, emergencies, then the earliest day and time window) is a rule of the prototype. The coordinator sets the day and the time window on the Schedule board; the order inside a window is left to the technician.',
     'Whether a technician may record a deficiency away from a job is assumed.',
     'Navigate opens the phone\'s map application; Call dials the contact. Both are real links.',
   ],
@@ -184,9 +184,9 @@ export function TechnicianToday() {
   const waiting = mine.filter((j) => j.status === 'completed').toSorted((a, b) => b.completedOn.localeCompare(a.completedOn));
   const doneToday = mine.filter((j) => ['completed', 'report_sent'].includes(j.status) && j.completedOn === today).length;
   const [first, ...rest] = dueToday;
-  // The site work of projects that is planned for this person in the next days.
+  // The site work of projects and the site surveys of Sales that are planned for this person in the next days.
   // A piece of work that runs over several days is one line, with its days.
-  const siteDays = boardItems(s, today, addDays(today, 7)).filter((i) => i.staffId === user.id && i.kind === 'task' && i.status !== 'done');
+  const siteDays = boardItems(s, today, addDays(today, 7)).filter((i) => i.staffId === user.id && i.kind !== 'job' && i.status !== 'done');
   const siteWork = [...siteDays.reduce((m, i) => m.set(i.id, m.has(i.id) ? { ...m.get(i.id), last: i.date } : { ...i, last: i.date }), new Map()).values()];
   const siteToday = siteDays.filter((i) => i.date === today);
 
@@ -216,8 +216,10 @@ export function TechnicianToday() {
             <ul className="space-y-2">
               {siteWork.map((it) => (
                 <li key={it.key}>
-                  <Link to={it.sitePath} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 transition-colors duration-150 hover:bg-slate-50">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-700"><HardHatIcon className="size-5" aria-hidden="true" /></span>
+                  <Link to={it.sitePath || '/customers/sites'} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 transition-colors duration-150 hover:bg-slate-50">
+                    {it.kind === 'survey'
+                      ? <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-teal-50 text-teal-700"><BinocularsIcon className="size-5" aria-hidden="true" /></span>
+                      : <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-700"><HardHatIcon className="size-5" aria-hidden="true" /></span>}
                     <span className="min-w-0 flex-1">
                       <span className="line-clamp-2 text-sm font-medium text-slate-900">{it.title}</span>
                       <span className="block truncate text-xs text-slate-500">{it.date === today ? 'today' : fmtDay(it.date)}{it.last !== it.date ? ` to ${fmtDay(it.last)}` : ''}, {shortWindow(it.window).toLowerCase()} · {it.sub}</span>

@@ -59,7 +59,7 @@ export function EquipmentTab({ site, editable, openDeviceId, onCloseDevice, syst
           action={editable && <Button variant="primary" icon={PlusIcon} onClick={() => setSystemDrawer({ system: null })}>Add system</Button>}
         >
           {site.stage === 'construction'
-            ? 'Systems are added at handover, from the project (Projects, step 5).'
+            ? 'Systems are added at handover, from the project.'
             : 'Add the fire alarm, sprinklers, extinguishers and so on, so visits can be planned.'}
         </EmptyState>
       ) : (

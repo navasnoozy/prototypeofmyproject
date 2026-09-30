@@ -17,8 +17,12 @@ pnpm dev         # opens http://localhost:3000
 Use **View as** (top bar) to see the product as another person of the demo
 company. Use **Phone view** (top bar) to open a phone next to the office: it
 shows a technician's phone and shares the data with the office window, so you
-can plan a job as the coordinator and watch it arrive on the phone. Use **Reset demo data** (account menu) to start again from the first
-sample.
+can plan a job as the coordinator and watch it arrive on the phone. Use **Guided
+journeys** (account menu, or the Journeys card on Home) to follow one whole story
+from the first step to the last, one person after another: the amber pill in the
+top bar keeps the next step at hand and opens it as the right person. Use **Reset
+demo data** (account menu) to start again from the first sample. A new version of
+the sample data is taken over by itself the first time the prototype is opened.
 
 ## What is in it
 
@@ -34,7 +38,7 @@ phone numbers, TRNs and amounts are samples.
 | 5    | Projects (packages, site work, costs, variations, claims, documents, testing and handover) and the Schedule planning board | built |
 | 6    | Purchases (suppliers, purchase orders with approval, deliveries, supplier bills) and Inventory (items, stock in the store and the vans, movements, reorder suggestions) | built |
 | 7    | Billing (invoices from contracts, claims, jobs and supplies; receipts with allocation; credit notes with approval; statements with ageing) | built |
-| 8    | Home by role, Reports, Journeys, polish | to come     |
+| 8    | Home for every role (figures, what needs the person, lists of their work), Reports (Money, Sales, Service, Projects, Stock, each with a period and CSV downloads), five guided Journeys that cross the areas, polish | built |
 
 The ten areas and their order are the proposal of decision record 39 of the
 main repository (status: Proposed). The prototype helps to test it.
@@ -46,11 +50,11 @@ Plain JavaScript (no TypeScript), React 19, Vite, Tailwind CSS 4,
 
 ```
 src/
-  data/       areas, roles, equipment catalogue, numbering, the words and rules of Sales, Service, Projects, Purchases and Billing, and seed/ (the sample data)
-  store/      one saved object of tables, actions that change it, selectors that read it (links.js keeps the threads between areas)
-  ui/         the shared pieces: Button, Badge, Floating/Menu, Form, Combobox, Table, Page...
-  shell/      the frame: top bar, search, sidebar, phone bar, View as, bell, account
-  pages/      one folder per area
+  data/       areas, roles, equipment catalogue, numbering, the words and rules of Sales, Service, Projects, Purchases, Billing and Reports (reportRules.js), the journeys (journeys.js), and seed/ (the sample data)
+  store/      one saved object of tables, actions that change it, selectors that read it (links.js keeps the threads between areas; reportSelectors.js and homeSelectors.js feed Reports and the Home of each role)
+  ui/         the shared pieces: Button, Badge, Floating/Menu, Form, Combobox, Table, Charts (hand-drawn, no chart library), Page...
+  shell/      the frame: top bar, search, sidebar, phone bar, View as, journey pill, bell, account
+  pages/      one folder per area (plus home/ and journeys/)
 ```
 
 Rules the code follows:
@@ -70,6 +74,13 @@ Rules the code follows:
   invoice: a receipt says which invoices it pays, and what no invoice takes stays on
   account. What a customer owes, its ageing and its statement are worked out from these
   documents (`billingSelectors.js`); no total is stored.
+- A report stores nothing: every figure is worked out from the tables for the
+  chosen period (`reportSelectors.js`), so it is as new as the data and agrees with
+  the screens it comes from. A table of a report can be downloaded as a CSV file.
+- A journey step is ticked by the data, not by a click: each step has a function
+  that looks at the records (`journeys.js`), so it does not matter which window did
+  the work. The journeys use the records of the sample data, so they start again
+  with Reset demo data. Journeys belong to the prototype, not to the product.
 - Sample dates are relative to today, so "due in 12 days" stays true whenever
   the prototype is opened.
 - A screen says "sample" wherever a fact was assumed (the "i" button on every

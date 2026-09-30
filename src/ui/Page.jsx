@@ -126,7 +126,7 @@ export function Page({ title, badge, facts, back, actions, menu, about, tabs, fo
             </div>
             {facts && <p className="mt-0.5 truncate text-sm text-slate-500">{facts}</p>}
           </div>
-          <div className="order-2 ml-auto flex shrink-0 items-center gap-2 md:order-3">
+          <div className="order-2 ml-auto flex max-w-full flex-wrap items-center justify-end gap-2 md:order-3 md:shrink-0 md:flex-nowrap">
             {about && <IconButton icon={InfoIcon} label="About this screen" onClick={() => setAboutOpen(true)} />}
             {menu?.length > 0 && (
               <Menu button={(p) => <IconButton icon={EllipsisIcon} label="More actions" {...p} />} items={menu} />

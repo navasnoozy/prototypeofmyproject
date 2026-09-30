@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn.js';
 import { IconButton } from '@/ui/Button.jsx';
 import { AccountMenu } from './AccountMenu.jsx';
 import { Bell } from './Bell.jsx';
+import { JourneyPill } from './JourneyPill.jsx';
 import { Mark } from './Mark.jsx';
 import { Search } from './Search.jsx';
 import { SyncChip } from './SyncChip.jsx';
@@ -45,6 +46,7 @@ export function TopBar({ phoneOpen = false, onPhone }) {
               Phone view
             </button>
           )}
+          <JourneyPill />
           <ViewAs />
           <Bell />
           <IconButton

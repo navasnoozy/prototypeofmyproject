@@ -63,9 +63,11 @@ export const lastNet = (p) => {
   const done = progressClaims(p).filter((c) => c.status !== 'draft');
   return done.length ? netOf(done[done.length - 1]) : 0;
 };
+/** True once a retention release is submitted: the retention is claimed back, paid or not. */
+export const retentionReleased = (p) => p.claims.some((c) => c.kind === 'retention' && c.status !== 'draft');
 export const retentionHeld = (p) => {
   const done = progressClaims(p).filter((c) => c.status !== 'draft');
-  if (done.length === 0) return 0;
+  if (done.length === 0 || retentionReleased(p)) return 0;
   const last = done[done.length - 1];
   return last.certRetention ?? last.retention ?? 0;
 };

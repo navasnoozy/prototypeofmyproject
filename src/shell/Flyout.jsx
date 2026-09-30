@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router';
 import { EyeIcon, PlusIcon } from 'lucide-react';
-import { areaOfPath, currentPage, isBuilt } from '@/data/areas.js';
+import { areaOfPath, currentPage } from '@/data/areas.js';
 import { cn } from '@/lib/cn.js';
 import { useSession } from '@/store/session.js';
 import { useStore } from '@/store/store.js';
@@ -9,10 +9,8 @@ import { pageInfo } from './pageInfo.js';
 
 const noteTone = { red: 'red', orange: 'orange' };
 
-// What sits at the right of a sub module: a count and a warning for built
-// areas, a "Step N" tag for areas that are not built yet.
-function Meta({ area, info }) {
-  if (!isBuilt(area)) return <Badge tone="neutral" className="mt-0.5">Step {area.step}</Badge>;
+// What sits at the right of a sub module: a warning and a count.
+function Meta({ info }) {
   return (
     <span className="flex shrink-0 items-center gap-2 pt-0.5">
       {info.note && <Badge tone={noteTone[info.note.tone]} dot>{info.note.text}</Badge>}
@@ -60,7 +58,7 @@ export function FlyoutPanel({ area, onNavigate }) {
                     </span>
                     <span className="line-clamp-2 block text-xs text-slate-500">{page.blurb}</span>
                   </span>
-                  <Meta area={area} info={pageInfo(s, area.id, page.id)} />
+                  <Meta info={pageInfo(s, area.id, page.id)} />
                 </Link>
               </li>
             );

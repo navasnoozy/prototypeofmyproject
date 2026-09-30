@@ -46,19 +46,27 @@ export const unscheduledTasks = (p) => p.tasks.filter((t) => t.status === 'todo'
 export const overBudget = (p) => p.packages.filter((x) => costTotals(p, x.id).exposure > x.cost);
 export const testsPending = (p) => p.tests.filter((t) => t.result !== 'pass');
 
-/** What must be true before the customer can take over (the conditions are shown as a list). */
+/**
+ * What must be true before the customer can take over. `label` is the condition and `detail` where it stands (the
+ * checklist shows both); `todo` says what to do about it (the list of what needs attention shows that).
+ */
 export function handoverChecks(p) {
   const docs = HANDOVER_DOCS.map((kind) => p.documents.filter((d) => d.kind === kind));
   const docsOk = docs.every((rows) => rows.length > 0 && rows.every((d) => d.status === 'issued'));
+  const passed = p.tests.length - testsPending(p).length;
   return [
-    { key: 'tests', label: 'Every acceptance test has passed', ok: p.tests.length > 0 && testsPending(p).length === 0, detail: `${p.tests.length - testsPending(p).length} of ${p.tests.length} passed` },
-    { key: 'snags', label: 'No snag is open', ok: openSnags(p).length === 0, detail: plural(openSnags(p).length, 'snag') + ' open' },
+    {
+      key: 'tests', label: 'Every acceptance test has passed', ok: p.tests.length > 0 && testsPending(p).length === 0, detail: `${passed} of ${p.tests.length} passed`,
+      todo: p.tests.length === 0 ? 'Add the acceptance tests' : `Pass the acceptance tests (${passed} of ${p.tests.length} passed)`,
+    },
+    { key: 'snags', label: 'No snag is open', ok: openSnags(p).length === 0, detail: plural(openSnags(p).length, 'snag') + ' open', todo: `Close ${plural(openSnags(p).length, 'open snag')}` },
     {
       key: 'cd', label: p.cdApproval === 'contractor' ? 'Civil Defence completion certificate is recorded' : 'The customer handles the Civil Defence completion',
       ok: p.cdApproval !== 'contractor' || Boolean(p.handover.cdCertificate),
       detail: p.handover.cdCertificate ? p.handover.cdCertificate.ref : p.handover.cdRequestedOn ? `Inspection requested ${fmtDate(p.handover.cdRequestedOn)}` : 'Not requested yet',
+      todo: p.handover.cdRequestedOn ? `Record the Civil Defence completion certificate (inspection requested ${fmtDate(p.handover.cdRequestedOn)})` : 'Request the Civil Defence inspection and record its certificate',
     },
-    { key: 'docs', label: 'As-builts, manuals, warranties and test reports are issued', ok: docsOk, detail: docsOk ? 'All issued' : 'Some are not issued' },
+    { key: 'docs', label: 'As-builts, manuals, warranties and test reports are issued', ok: docsOk, detail: docsOk ? 'All issued' : 'Some are not issued', todo: 'Issue the as-builts, manuals, warranties and test reports' },
   ];
 }
 export const readyToHandOver = (p) => handoverChecks(p).every((c) => c.ok);
@@ -95,11 +103,15 @@ export function nextSteps(p, today = todayISO()) {
   if (p.phase === 'testing' && testsPending(p).length > 0) add('orange', `${plural(testsPending(p).length, 'test')} not passed yet`, 'handover');
   if (p.phase === 'handover') {
     if (readyToHandOver(p)) add('blue', 'Everything is in place: hand over to the customer', 'handover');
-    else for (const c of handoverChecks(p).filter((x) => !x.ok)) add('orange', `${c.label}: ${c.detail.toLowerCase()}`, 'handover');
+    else for (const c of handoverChecks(p).filter((x) => !x.ok)) add('orange', c.todo, 'handover');
   }
   if (p.phase === 'retention') {
+    const release = p.claims.find((c) => c.kind === 'retention');
     const left = diffDays(today, p.handover.dlpEnd);
-    if (left <= 0) add('blue', `The defects liability period is over: release the retention (${aed(retentionHeld(p))})`, 'claims');
+    if (release) {
+      // Once submitted, the lines about claims above say what is next; a draft still has to be submitted.
+      if (release.status === 'draft') add('blue', 'The retention release is a draft: submit it to the customer', 'claims');
+    } else if (left <= 0) add('blue', `The defects liability period is over: release the retention (${aed(retentionHeld(p))})`, 'claims');
     else add('blue', `The defects liability period ends ${fmtDate(p.handover.dlpEnd)}; ${aed(retentionHeld(p))} is held until then`, 'claims');
   }
   return steps;

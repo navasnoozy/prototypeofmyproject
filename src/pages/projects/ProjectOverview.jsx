@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { ArrowRightIcon } from 'lucide-react';
-import { claimedTotal, contractValue, costTotals, forecast, originalValue, paidTotal, percentComplete, retentionHeld, workDone } from '@/data/projectRules.js';
+import { claimedTotal, contractValue, costTotals, forecast, originalValue, paidTotal, percentComplete, retentionHeld, retentionReleased, workDone } from '@/data/projectRules.js';
 import { cn } from '@/lib/cn.js';
 import { diffDays, fmtDate, relDays, todayISO } from '@/lib/dates.js';
 import { aed, money } from '@/lib/format.js';
@@ -38,7 +38,7 @@ export function ProjectOverview({ p, setTab }) {
             <Stat label="Contract value" amount={value} sub={extra ? `with variations ${signed(extra)}` : 'before VAT'} />
             <Stat label="Work done" value={`${percentComplete(p).toFixed(0)}%`} sub={aed(workDone(p))} />
             <Stat label="Paid by the customer" amount={paidTotal(p)} sub={claimedTotal(p) ? `${aed(claimedTotal(p))} claimed` : 'nothing claimed yet'} />
-            <Stat label="Retention held" amount={retentionHeld(p)} sub={`${p.retentionPct}% of the work claimed`} />
+            <Stat label="Retention held" amount={retentionHeld(p)} sub={retentionReleased(p) ? 'claimed back' : `${p.retentionPct}% of the work claimed`} />
           </dl>
           <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label="Budget (cost)" amount={f.budget} />
